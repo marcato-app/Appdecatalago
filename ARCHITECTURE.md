@@ -124,3 +124,22 @@ no desenho original com Supabase Auth.
 - **Fase 3**: mais modelos, QR code do link, upload de imagens, tema
   customizável.
 - **Fase 4**: empacotamento mobile (Capacitor).
+
+## Ideia anotada pro roadmap: catálogo mestre por segmento
+
+Referência: `references/modelos/imoove-iphone/` (loja de revenda de iPhones,
+app "iMoove"). Diferente dos modelos acima (lojista digita cada produto na
+mão), esse padrão tem um **catálogo mestre mantido pela plataforma**
+(ex: todo iPhone a partir do 11, com foto/nome/specs oficiais) — o lojista só
+escolhe o modelo numa lista pronta, define condição (Lacrado/Seminovo/CPO),
+cor/variação, preço e garantia. A ficha do produto (foto, categoria "Apple >
+iPhones") já vem pronta.
+
+Isso é uma mudança de modelo de dados, não só um tema novo: precisaria de
+uma tabela de produtos globais (`catalog_products`, mantida pela plataforma)
+separada da oferta de cada loja (condição/preço/estoque em cima do produto
+global), diferente do `products` atual que é 100% por loja. Também exige
+popular o catálogo mestre com conteúdo real (specs, fotos) por segmento —
+eletrônicos é o primeiro caso, mas o padrão serve pra qualquer nicho com
+catálogo padronizado (ex: carros, tênis). Decidido em 2026-09-19: não entra
+ainda, fica pra quando chegarmos nesse tipo de segmento.
