@@ -88,21 +88,37 @@ schema nem motor compartilhado.
 - Público: `app/[slug]/[[...path]]/page.tsx` — busca a loja pelo slug, 404 se
   não existir ou não estiver `published`; despacha pro formato de páginas do
   template. `generateMetadata()` gera OG tags pra prévia boa no
-  Instagram/WhatsApp.
-- Cache: ISR com revalidação sob demanda quando o lojista publica/salva.
+  Instagram/WhatsApp. Sem `fetch()`/`'use cache'` envolvido (é tudo leitura
+  direta via Drizzle), então cada acesso já renderiza dinâmico e sempre
+  fresco — sem precisar de ISR por enquanto.
 - Slugs validados contra lista de palavras reservadas (`dashboard`, `api`,
   `login`...).
-- Painel: `app/dashboard/**`, protegido por sessão Supabase, todo acesso ao
-  banco filtrado por `owner_id = session.user.id`.
+- Painel: `app/dashboard/**`, protegido pela sessão local (ver "Auth" abaixo)
+  via `proxy.ts` + `requireUser()`/`requireOwnedStore()` em cada
+  página/action, todo acesso ao banco filtrado por `owner_id`/`store_id`.
+  Toda mutação chama `revalidatePath()` — Server Actions não atualizam a
+  página que as invocou sozinhas, isso só acontece com `redirect()`,
+  `revalidatePath()`/`revalidateTag()` ou `refresh()` explícitos.
+
+## Auth (Fase 1 — local, antes do Supabase)
+
+Sem projeto Supabase conectado ainda, o login/cadastro do lojista usa uma
+implementação local (`lib/auth/`): senha com hash `scrypt` (`password.ts`),
+sessão em cookie assinado por HMAC (`token.ts` + `session.ts`). Todo o app só
+fala com `requireUser()`/`getCurrentUser()` — trocar para Supabase Auth mais
+tarde é mexer nesse módulo e nas actions de login/signup, sem tocar o resto
+do painel. Exige uma coluna `users.password_hash` (nullable) que não existia
+no desenho original com Supabase Auth.
 
 ## Fases
 
 - **Fase 0 (concluída)**: fundação do projeto — scaffold Next.js, schema
   Drizzle, estrutura de templates, esta documentação.
-- **Fase 1**: loop completo com UM template — família **catálogo** (estilo
-  Adega MM), porque é o fluxo que o produto descreve primeiro ("cadastra seus
-  produtos") e por ser a parte mais arriscada tecnicamente (carrinho,
-  categorias aninhadas, mensagem de pedido).
+- **Fase 1 (concluída)**: loop completo com UM template — família
+  **catálogo** (estilo Adega MM): cadastro/login (auth local, ver acima),
+  criar loja, CRUD de categorias/produtos, página pública com busca/
+  carrinho/checkout no WhatsApp, publicar/despublicar. Testado localmente
+  (Postgres local, sem Supabase ainda).
 - **Fase 2**: família portfólio (barbearia/clínica), generalizando o motor de
   blocos; tela de escolha de modelo.
 - **Fase 3**: mais modelos, QR code do link, upload de imagens, tema

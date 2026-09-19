@@ -53,6 +53,10 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   name: text("name"),
   authProviderId: text("auth_provider_id").unique(),
+  // Placeholder for the local auth used before a real Supabase project is
+  // connected (see lib/auth/). Nullable because it becomes unused once
+  // Supabase Auth (authProviderId) takes over.
+  passwordHash: text("password_hash"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
