@@ -1,9 +1,9 @@
-# Appdecatalogo
+# Flip
 
-App de catálogo digital multi-loja: lojistas se cadastram, escolhem um modelo
-visual, cadastram seu conteúdo (produtos com preço, ou portfólio de serviços)
-e recebem uma página pública com link único pra compartilhar no
-Instagram/WhatsApp.
+App de catálogo digital multi-loja (produto Marcato): lojistas se cadastram,
+escolhem um modelo visual, cadastram seu conteúdo (produtos com preço, ou
+portfólio de serviços) e recebem uma página pública com link único pra
+compartilhar no Instagram/WhatsApp. Publicado em `flip.marcatoapp.com.br`.
 
 Veja `ARCHITECTURE.md` para o desenho técnico completo (stack, modelo de
 dados, sistema de templates, rotas multi-loja e fases do projeto), e

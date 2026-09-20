@@ -1,0 +1,37 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"main": ".open-next/worker.js",
+	"name": "flip",
+	"compatibility_date": "2026-09-20",
+	"routes": [
+		{ "pattern": "flip.marcatoapp.com.br", "custom_domain": true }
+	],
+	"compatibility_flags": [
+		"nodejs_compat",
+		"global_fetch_strictly_public"
+	],
+	// Público por natureza (chave "publishable" do Supabase — segura pra
+	// expor), por isso fica aqui em vez de GitHub Secrets. DATABASE_URL é
+	// sensível e é enviado como secret do Worker pelo workflow de deploy.
+	"vars": {
+		"NEXT_PUBLIC_SUPABASE_URL": "https://guuetpqdvepezffsjtjo.supabase.co",
+		"NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_csG7wFOerGGDFqyQn7jdyQ_a7WYqBpB"
+	},
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"services": [
+		{
+			// Self-reference service binding, the service name must match the worker name
+			// see https://opennext.js.org/cloudflare/caching
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "flip"
+		}
+	],
+	"images": {
+		// Enable image optimization
+		// see https://opennext.js.org/cloudflare/howtos/image
+		"binding": "IMAGES"
+	}
+}

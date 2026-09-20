@@ -1,0 +1,42 @@
+name: Deploy to Cloudflare
+
+# TODO: depois que esse branch for mergeado, trocar por `main`.
+on:
+  push:
+    branches:
+      - claude/catalog-app-store-6x0gpt
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build (Next.js + adaptador Cloudflare)
+        run: npx opennextjs-cloudflare build
+        env:
+          # Públicas por natureza — os valores reais também estão em
+          # wrangler.jsonc (runtime); aqui é só pra ficarem embutidas no
+          # bundle do client durante o build.
+          NEXT_PUBLIC_SUPABASE_URL: https://guuetpqdvepezffsjtjo.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_csG7wFOerGGDFqyQn7jdyQ_a7WYqBpB
+
+      - name: Deploy no Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+          secrets: |
+            DATABASE_URL
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
