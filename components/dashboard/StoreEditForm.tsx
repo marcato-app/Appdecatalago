@@ -1,8 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { updateStoreAction, type FormState } from "@/app/dashboard/loja/actions";
 import type { stores } from "@/db/schema";
+import { BUSINESS_CATEGORIES } from "@/lib/business-categories";
+import { COLOR_PRESETS, FONT_PRESETS, matchPresetIds } from "@/lib/theme-presets";
+import { formatCnpj } from "@/lib/cnpj";
+import type { TemplateTheme } from "@/templates/types";
 
 const initialState: FormState = {};
 
@@ -10,6 +14,11 @@ type Store = typeof stores.$inferSelect;
 
 export function StoreEditForm({ store }: { store: Store }) {
   const [state, formAction, isPending] = useActionState(updateStoreAction, initialState);
+  const { colorPresetId: initialColorPresetId, fontPresetId: initialFontPresetId } = matchPresetIds(
+    store.theme as TemplateTheme | undefined,
+  );
+  const [colorPresetId, setColorPresetId] = useState(initialColorPresetId);
+  const [fontPresetId, setFontPresetId] = useState(initialFontPresetId);
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -91,6 +100,84 @@ export function StoreEditForm({ store }: { store: Store }) {
           defaultValue={store.addressLine ?? ""}
           className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
         />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label htmlFor="cnpj" className="text-sm font-medium">
+          CNPJ <span className="font-normal text-zinc-500">(opcional)</span>
+        </label>
+        <input
+          id="cnpj"
+          name="cnpj"
+          type="text"
+          placeholder="00.000.000/0000-00"
+          defaultValue={store.cnpj ? formatCnpj(store.cnpj) : ""}
+          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label htmlFor="businessCategory" className="text-sm font-medium">
+          Ramo de atividade
+        </label>
+        <select
+          id="businessCategory"
+          name="businessCategory"
+          defaultValue={store.businessCategory ?? BUSINESS_CATEGORIES[0].id}
+          className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+        >
+          {BUSINESS_CATEGORIES.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <span className="text-sm font-medium">Cores do site</span>
+        <div className="flex flex-wrap gap-2">
+          {COLOR_PRESETS.map((preset) => (
+            <label key={preset.id} className="flex cursor-pointer flex-col items-center gap-1">
+              <input
+                type="radio"
+                name="colorPresetId"
+                value={preset.id}
+                checked={colorPresetId === preset.id}
+                onChange={() => setColorPresetId(preset.id)}
+                className="sr-only"
+              />
+              <span
+                className={`flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border-2 ${
+                  colorPresetId === preset.id ? "border-zinc-900 dark:border-zinc-100" : "border-transparent"
+                }`}
+                style={{ background: preset.colors.background }}
+              >
+                <span className="h-6 w-6 rounded-full" style={{ background: preset.colors.primary }} />
+              </span>
+              <span className="text-[11px] text-zinc-500">{preset.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label htmlFor="fontPresetId" className="text-sm font-medium">
+          Fontes
+        </label>
+        <select
+          id="fontPresetId"
+          name="fontPresetId"
+          value={fontPresetId}
+          onChange={(event) => setFontPresetId(event.target.value)}
+          className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+        >
+          {FONT_PRESETS.map((preset) => (
+            <option key={preset.id} value={preset.id}>
+              {preset.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {state?.error ? <p className="text-sm text-red-600">{state.error}</p> : null}

@@ -9,8 +9,10 @@ import { requireUser } from "@/lib/auth/session";
 import { getStoreByOwnerId } from "@/lib/stores";
 import { slugify, validateSlugFormat } from "@/lib/slug";
 import { normalizeWhatsAppNumber } from "@/lib/whatsapp";
-
-const CATALOG_TEMPLATE_SLUG = "adega-mm";
+import { isValidCnpj } from "@/lib/cnpj";
+import { findBusinessCategory } from "@/lib/business-categories";
+import { buildThemeOverride } from "@/lib/theme-presets";
+import { templateManifests } from "@/templates/registry";
 
 const createStoreSchema = z.object({
   name: z.string().trim().min(2, "Informe o nome da loja."),
@@ -19,6 +21,11 @@ const createStoreSchema = z.object({
     .string()
     .trim()
     .min(10, "Informe um número de WhatsApp válido com DDD."),
+  businessCategory: z.string().trim().min(1, "Escolha o ramo de atividade."),
+  templateSlug: z.string().trim().min(1, "Escolha um modelo."),
+  cnpj: z.string().trim().optional(),
+  colorPresetId: z.string().trim().optional(),
+  fontPresetId: z.string().trim().optional(),
 });
 
 export interface FormState {
@@ -37,13 +44,18 @@ export async function createStoreAction(_prevState: FormState, formData: FormDat
     name: formData.get("name"),
     slug: slugify(String(formData.get("slug") ?? "")),
     whatsappNumber: formData.get("whatsappNumber"),
+    businessCategory: formData.get("businessCategory"),
+    templateSlug: formData.get("templateSlug"),
+    cnpj: formData.get("cnpj") || undefined,
+    colorPresetId: formData.get("colorPresetId") || undefined,
+    fontPresetId: formData.get("fontPresetId") || undefined,
   });
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
   }
 
-  const { name, slug, whatsappNumber } = parsed.data;
+  const { name, slug, whatsappNumber, businessCategory, templateSlug, cnpj, colorPresetId, fontPresetId } = parsed.data;
 
   const slugError = validateSlugFormat(slug);
   if (slugError) {
@@ -55,20 +67,39 @@ export async function createStoreAction(_prevState: FormState, formData: FormDat
     return { error: "Esse link já está em uso, escolha outro." };
   }
 
+  if (!findBusinessCategory(businessCategory)) {
+    return { error: "Ramo de atividade inválido." };
+  }
+
+  const manifest = templateManifests.find((m) => m.slug === templateSlug);
+  if (!manifest) {
+    return { error: "Modelo inválido." };
+  }
+
+  let cnpjDigits: string | null = null;
+  if (cnpj) {
+    cnpjDigits = cnpj.replace(/\D/g, "");
+    if (!isValidCnpj(cnpjDigits)) {
+      return { error: "CNPJ inválido. Confira os números digitados." };
+    }
+  }
+
   const template = await db.query.templates.findFirst({
-    where: eq(templates.slug, CATALOG_TEMPLATE_SLUG),
+    where: eq(templates.slug, manifest.slug),
   });
   if (!template) {
-    return { error: "Modelo de catálogo não encontrado. Rode `npm run db:seed`." };
+    return { error: "Modelo não encontrado. Rode `npm run db:seed`." };
   }
 
   await db.insert(stores).values({
     ownerId: user.id,
     slug,
     name,
-    businessType: "catalog",
+    businessType: manifest.businessType,
+    businessCategory,
+    cnpj: cnpjDigits,
     templateId: template.id,
-    theme: {},
+    theme: buildThemeOverride(colorPresetId, fontPresetId),
     whatsappNumber: normalizeWhatsAppNumber(whatsappNumber),
     status: "draft",
   });

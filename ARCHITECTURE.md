@@ -70,18 +70,41 @@ próximas fases). O manifest declara quais blocos o template usa e em que
 ordem — é o que a tela de cadastro de conteúdo vai ler pra saber quais campos
 mostrar ao lojista.
 
-**Motor compartilhado** (a construir, reusado por todos os templates):
-`useCart(storeId)` + `useWhatsAppLink()`, `<HorizontalCarousel>` (drag por
-ponteiro + autoplay/dots num componente só, cobrindo equipe/galeria/
-resultados), `<MapEmbed>`, `<LinkButtonList>`, `<BlockRenderer>`.
+**Motor compartilhado** (reusado por todos os templates, independente de
+fidelidade visual): `lib/cart.ts` (`useCart(storeId)`), `lib/whatsapp.ts`
+(monta link/mensagem de pedido), `lib/money.ts`, `lib/theme.ts` +
+`lib/theme-presets.ts` (paletas/fontes pré-montadas, ver abaixo),
+`lib/business-categories.ts` (ramo de atividade → recomendação de modelo).
 
-**Específico de cada template**: tratamento visual do hero, fontes/animações,
-overrides visuais pontuais de algum bloco.
+**Fidelidade visual por template**: `adega-mm` (família catálogo) é o
+primeiro a ter port pixel-a-pixel da referência estática
+(`references/modelos/adega-mm/`) — `templates/adega-mm/{LinkHub,Cardapio}.tsx`
++ CSS Modules portados quase literal de `assets/css/style.css` e do `<style>`
+inline do `index.html`, incluindo a splash de boas-vindas, nav com scroll-spy,
+carrinho flutuante etc. As cores/fontes fixas do CSS original viram custom
+properties (`--color-*`, `--font-*`) injetadas por `ThemeStyle`, então um
+preset de cor/fonte reskina o template inteiro sem tocar em markup.
+`barbearia-tnt` e `clinica` ainda usam o render genérico em
+`components/store/*` (Tailwind, sem port pixel-a-pixel) — isso é dívida
+conhecida da Fase 2, não descuido: `app/[slug]/[[...path]]/page.tsx`
+despacha pro pacote fiel quando o `template.slug` tem um, senão cai no
+genérico.
 
 `business_type` no template decide o formato de páginas (catálogo = 2
 páginas com carrinho; portfólio = 1 página de blocos). Adicionar um 4º modelo
 = uma pasta nova em `templates/` + uma linha na tabela `templates`, sem tocar
 schema nem motor compartilhado.
+
+### Paletas e fontes (`lib/theme-presets.ts`)
+
+O cadastro/edição da loja oferece **presets** completos de cor (5 paletas,
+cada uma com todos os tons — incluindo os extras que `adega-mm` usa, tipo
+`primaryLight`/`card`/`rule`) e de fonte (4 pares, cada um com seu link do
+Google Fonts), em vez de um color-picker livre — escolher uma cor por vez
+podia gerar combinação ruim; escolher uma paleta pronta, não. Aplicar um
+preset substitui `stores.theme` inteiro (nunca mistura metade de uma paleta
+com metade de outra). `ThemeStyle` resolve o link de fonte certo a partir dos
+nomes de família salvos (`resolveFontsHref`), sem guardar URL no banco.
 
 ## Rotas multi-loja
 
@@ -137,10 +160,17 @@ produção).
   WhatsApp, publicar/despublicar. Testado localmente (Postgres local) e
   depois conectado a um projeto Supabase real (schema aplicado via SQL
   Editor, login migrado pra Supabase Auth — ver "Auth" acima).
-- **Fase 2**: família portfólio (barbearia/clínica), generalizando o motor de
-  blocos; tela de escolha de modelo.
-- **Fase 3**: mais modelos, QR code do link, upload de imagens, tema
-  customizável.
+- **Fase 1.5 (concluída)**: port pixel-a-pixel do modelo `adega-mm` (ver
+  "Sistema de templates" acima) + cadastro completo — ramo de atividade
+  (`stores.business_category`, recomenda modelo), CNPJ opcional
+  (`stores.cnpj`, validado com dígito verificador), escolha de modelo com
+  exemplos, presets de cor/fonte, links extras dinâmicos
+  (`store_links` — site, App Store, Play Store, outros; Instagram/WhatsApp
+  continuam campo dedicado).
+- **Fase 2**: família portfólio (barbearia/clínica) ganha o mesmo tratamento
+  pixel-a-pixel que `adega-mm` já tem (hoje renderiza genérico — ver
+  "Sistema de templates"), generalizando o motor de blocos.
+- **Fase 3**: mais modelos, QR code do link, upload de imagens.
 - **Fase 4**: empacotamento mobile (Capacitor).
 
 ## Ideia anotada pro roadmap: catálogo mestre por segmento

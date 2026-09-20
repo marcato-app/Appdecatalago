@@ -1,12 +1,21 @@
 import Link from "next/link";
+import { eq, asc } from "drizzle-orm";
+import { db } from "@/db/client";
+import { storeLinks } from "@/db/schema";
 import { requireOwnedStore } from "@/lib/stores";
 import { LogoutButton } from "@/components/dashboard/LogoutButton";
 import { StoreEditForm } from "@/components/dashboard/StoreEditForm";
+import { StoreLinksManager } from "@/components/dashboard/StoreLinksManager";
 import { togglePublishAction } from "./actions";
 
 export default async function LojaPage() {
   const store = await requireOwnedStore();
   const isPublished = store.status === "published";
+  const links = await db
+    .select()
+    .from(storeLinks)
+    .where(eq(storeLinks.storeId, store.id))
+    .orderBy(asc(storeLinks.sortOrder));
 
   return (
     <div className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-8 px-6 py-12">
@@ -50,6 +59,8 @@ export default async function LojaPage() {
       </div>
 
       <StoreEditForm store={store} />
+
+      <StoreLinksManager links={links} />
     </div>
   );
 }

@@ -91,6 +91,13 @@ export const stores = pgTable(
     slug: text("slug").notNull().unique(),
     name: text("name").notNull(),
     businessType: businessTypeEnum("business_type").notNull(),
+    // "Ramo de atividade" — id into lib/business-categories.ts, not its own
+    // enum: the list is app-level (recommends templates in the UI) rather
+    // than a hard data-integrity constraint the DB needs to enforce.
+    businessCategory: text("business_category"),
+    // CNPJ, quando houver (opcional — pessoa física / MEI informal pode não
+    // ter). Guardado só com dígitos (14), formatação é responsabilidade da UI.
+    cnpj: text("cnpj"),
     templateId: uuid("template_id")
       .notNull()
       .references(() => templates.id),

@@ -15,6 +15,13 @@
       "when": 1789845625918,
       "tag": "0001_stormy_mad_thinker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789875412985,
+      "tag": "0002_smooth_lake",
+      "breakpoints": true
     }
   ]
 }
