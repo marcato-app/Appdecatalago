@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { categories, products } from "@/db/schema";
@@ -11,6 +12,9 @@ import type { CategoryOption } from "@/components/dashboard/ProductForm";
 
 export default async function ProdutosPage() {
   const store = await requireOwnedStore();
+  if (store.businessType !== "catalog") {
+    redirect("/dashboard/loja/conteudo");
+  }
 
   const [allCategories, allProducts] = await Promise.all([
     db.select().from(categories).where(eq(categories.storeId, store.id)).orderBy(asc(categories.sortOrder)),

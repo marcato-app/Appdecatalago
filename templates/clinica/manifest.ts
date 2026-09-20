@@ -11,8 +11,12 @@ export const manifest: TemplateManifest = {
   description:
     "Página única com destaques em números, especialidades, carrossel de resultados e depoimentos. Ideal para clínicas, esteticistas, profissionais de saúde e beleza.",
   defaultTheme: {
+    // primaryDeep is an extra slot beyond the 5 base ones (same pattern as
+    // adega-mm/barbearia-tnt's manifests) so the default palette reproduces
+    // the original exactly; a color preset always sets every slot.
     colors: {
       primary: "#B08A4E",
+      primaryDeep: "#8C6C34",
       background: "#FAF7F1",
       ink: "#2A2420",
       textDim: "#5A5148",
@@ -23,13 +27,13 @@ export const manifest: TemplateManifest = {
       body: "Manrope",
     },
   },
+  // "map"/"links" saíram — mesma razão do barbearia-tnt (ver comentário lá):
+  // já cobertos por campos dedicados de `stores` + store_links.
   blocks: [
     { type: "stats", label: "Números em destaque", required: false, maxItems: 4 },
     { type: "chips", label: "Especialidades/tratamentos", required: false, maxItems: 10 },
     { type: "results_carousel", label: "Carrossel de resultados", required: false, maxItems: 12 },
     { type: "about", label: "Sobre", required: false, maxItems: 1 },
     { type: "reviews", label: "Avaliações", required: false, maxItems: 10 },
-    { type: "map", label: "Endereço", required: false, maxItems: 1 },
-    { type: "links", label: "Links (WhatsApp, Instagram...)", required: true, maxItems: 8 },
   ],
 };

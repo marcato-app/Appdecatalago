@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db/client";
-import { stores, templates } from "@/db/schema";
+import { stores, templates, blocks } from "@/db/schema";
 import { requireUser } from "@/lib/auth/session";
 import { getStoreByOwnerId } from "@/lib/stores";
 import { slugify, validateSlugFormat } from "@/lib/slug";
@@ -91,18 +91,38 @@ export async function createStoreAction(_prevState: FormState, formData: FormDat
     return { error: "Modelo não encontrado. Rode `npm run db:seed`." };
   }
 
-  await db.insert(stores).values({
-    ownerId: user.id,
-    slug,
-    name,
-    businessType: manifest.businessType,
-    businessCategory,
-    cnpj: cnpjDigits,
-    templateId: template.id,
-    theme: buildThemeOverride(colorPresetId, fontPresetId),
-    whatsappNumber: normalizeWhatsAppNumber(whatsappNumber),
-    status: "draft",
-  });
+  const [newStore] = await db
+    .insert(stores)
+    .values({
+      ownerId: user.id,
+      slug,
+      name,
+      businessType: manifest.businessType,
+      businessCategory,
+      cnpj: cnpjDigits,
+      templateId: template.id,
+      theme: buildThemeOverride(colorPresetId, fontPresetId),
+      whatsappNumber: normalizeWhatsAppNumber(whatsappNumber),
+      status: "draft",
+    })
+    .returning({ id: stores.id });
+
+  // Portfolio templates (single page of "blocks" — team, gallery, stats...)
+  // get one empty `blocks` row per manifest.blocks[] entry up front, so
+  // /dashboard/loja/conteudo always has every section to fill in instead of
+  // needing its own "create the section" step. Catalog templates don't use
+  // blocks at all (categories/products cover that family).
+  if (manifest.blocks && manifest.blocks.length > 0) {
+    await db.insert(blocks).values(
+      manifest.blocks.map((block, index) => ({
+        storeId: newStore.id,
+        type: block.type,
+        position: index,
+        visible: true,
+        settings: {},
+      })),
+    );
+  }
 
   redirect("/dashboard/loja");
 }

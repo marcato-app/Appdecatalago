@@ -142,6 +142,14 @@ export const FONT_PRESETS: FontPreset[] = [
     googleFontsHref:
       "https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Nunito:wght@300;400;500;600;700&display=swap",
   },
+  {
+    id: "elegante",
+    label: "Elegante (Cormorant Garamond + Manrope)",
+    display: "Cormorant Garamond",
+    body: "Manrope",
+    googleFontsHref:
+      "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Manrope:wght@400;500;600;700&display=swap",
+  },
 ];
 
 export const DEFAULT_COLOR_PRESET_ID = "laranja-adega";
@@ -157,12 +165,24 @@ export function findFontPreset(id: string | undefined): FontPreset | undefined {
 
 /** Matches a resolved theme's font family names back to the preset that
  * produces them, so the page can load the right Google Fonts stylesheet
- * without storing the URL itself in `stores.theme`. Falls back to the
- * "clássico" preset's fonts (Pacifico + Poppins) — the only pairing every
- * template's default theme is built around. */
+ * without storing the URL itself in `stores.theme`. A template's own
+ * default fonts (set in its manifest, not chosen from a preset) may not
+ * match any preset exactly — in that case this builds the Google Fonts URL
+ * directly from whatever family names the theme specifies, so a font is
+ * never silently missing just because no preset happens to declare it. */
 export function resolveFontsHref(fonts: TemplateTheme["fonts"]): string {
   const match = FONT_PRESETS.find((preset) => preset.display === fonts?.display && preset.body === fonts?.body);
-  return (match ?? FONT_PRESETS[0]).googleFontsHref;
+  if (match) return match.googleFontsHref;
+
+  const families = [fonts?.display, fonts?.body].filter(
+    (family, index, all): family is string => Boolean(family) && all.indexOf(family) === index,
+  );
+  if (families.length === 0) return FONT_PRESETS[0].googleFontsHref;
+
+  const query = families
+    .map((family) => `family=${encodeURIComponent(family).replace(/%20/g, "+")}:wght@300;400;500;600;700`)
+    .join("&");
+  return `https://fonts.googleapis.com/css2?${query}&display=swap`;
 }
 
 /** Builds a full `stores.theme` override from a chosen color + font preset

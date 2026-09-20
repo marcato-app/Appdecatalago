@@ -98,6 +98,11 @@ export const stores = pgTable(
     // CNPJ, quando houver (opcional — pessoa física / MEI informal pode não
     // ter). Guardado só com dígitos (14), formatação é responsabilidade da UI.
     cnpj: text("cnpj"),
+    // Registro de conselho profissional (CRM, CRBM, CRO, OAB...), quando
+    // houver — usado pelo template `clinica` como a linha pequena abaixo do
+    // cargo, mas é um campo genérico o bastante pra qualquer profissional
+    // regulamentado, não travado a um template.
+    professionalCredential: text("professional_credential"),
     templateId: uuid("template_id")
       .notNull()
       .references(() => templates.id),

@@ -53,9 +53,15 @@ export default async function LojaPage() {
           )}
         </div>
 
-        <Link href="/dashboard/loja/produtos" className="text-sm font-medium underline">
-          Gerenciar produtos →
-        </Link>
+        {store.businessType === "catalog" ? (
+          <Link href="/dashboard/loja/produtos" className="text-sm font-medium underline">
+            Gerenciar produtos →
+          </Link>
+        ) : (
+          <Link href="/dashboard/loja/conteudo" className="text-sm font-medium underline">
+            Gerenciar conteúdo →
+          </Link>
+        )}
       </div>
 
       <StoreEditForm store={store} />

@@ -37,6 +37,34 @@ export function StoreEditForm({ store }: { store: Store }) {
       </div>
 
       <div className="flex flex-col gap-1">
+        <label htmlFor="logoUrl" className="text-sm font-medium">
+          Foto/logo <span className="font-normal text-zinc-500">(URL da imagem)</span>
+        </label>
+        <input
+          id="logoUrl"
+          name="logoUrl"
+          type="url"
+          placeholder="https://…"
+          defaultValue={store.logoUrl ?? ""}
+          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label htmlFor="coverImageUrl" className="text-sm font-medium">
+          Foto de capa <span className="font-normal text-zinc-500">(opcional — URL da imagem)</span>
+        </label>
+        <input
+          id="coverImageUrl"
+          name="coverImageUrl"
+          type="url"
+          placeholder="https://…"
+          defaultValue={store.coverImageUrl ?? ""}
+          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
         <label htmlFor="tagline" className="text-sm font-medium">
           Frase curta (tagline)
         </label>
@@ -112,6 +140,20 @@ export function StoreEditForm({ store }: { store: Store }) {
           type="text"
           placeholder="00.000.000/0000-00"
           defaultValue={store.cnpj ? formatCnpj(store.cnpj) : ""}
+          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label htmlFor="professionalCredential" className="text-sm font-medium">
+          Registro profissional <span className="font-normal text-zinc-500">(CRM, CRBM, CRO... opcional)</span>
+        </label>
+        <input
+          id="professionalCredential"
+          name="professionalCredential"
+          type="text"
+          placeholder="Ex: CRBM 67.764"
+          defaultValue={store.professionalCredential ?? ""}
           className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
         />
       </div>

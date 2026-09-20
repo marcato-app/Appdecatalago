@@ -76,24 +76,35 @@ fidelidade visual): `lib/cart.ts` (`useCart(storeId)`), `lib/whatsapp.ts`
 `lib/theme-presets.ts` (paletas/fontes pré-montadas, ver abaixo),
 `lib/business-categories.ts` (ramo de atividade → recomendação de modelo).
 
-**Fidelidade visual por template**: `adega-mm` (família catálogo) é o
-primeiro a ter port pixel-a-pixel da referência estática
-(`references/modelos/adega-mm/`) — `templates/adega-mm/{LinkHub,Cardapio}.tsx`
-+ CSS Modules portados quase literal de `assets/css/style.css` e do `<style>`
-inline do `index.html`, incluindo a splash de boas-vindas, nav com scroll-spy,
-carrinho flutuante etc. As cores/fontes fixas do CSS original viram custom
-properties (`--color-*`, `--font-*`) injetadas por `ThemeStyle`, então um
-preset de cor/fonte reskina o template inteiro sem tocar em markup.
-`barbearia-tnt` e `clinica` ainda usam o render genérico em
-`components/store/*` (Tailwind, sem port pixel-a-pixel) — isso é dívida
-conhecida da Fase 2, não descuido: `app/[slug]/[[...path]]/page.tsx`
-despacha pro pacote fiel quando o `template.slug` tem um, senão cai no
-genérico.
+**Fidelidade visual**: os 3 templates têm port pixel-a-pixel das referências
+estáticas em `references/modelos/`:
+- `adega-mm` (catálogo) — `templates/adega-mm/{LinkHub,Cardapio}.tsx`, port
+  de `assets/css/style.css` + `<style>` do `index.html`: splash de
+  boas-vindas, nav com scroll-spy, carrinho flutuante.
+- `barbearia-tnt` (portfólio) — `templates/barbearia-tnt/Page.tsx`, port do
+  `<style>` do `index.html`: hero com foto+logo flutuante, tiras de
+  equipe/galeria com drag horizontal (`DragScroll.tsx`), card de mapa.
+- `clinica` (portfólio) — `templates/clinica/Page.tsx`, port do `<style>` de
+  `references/modelos/clinica-giullia-bandeira/index.html`: moldura de foto
+  com anel animado, stats, chips, carrossel de resultados com autoplay/dots
+  (`ResultsCarousel.tsx`), depoimentos, WhatsApp flutuante.
+
+Em todos, as cores/fontes fixas do CSS original viram custom properties
+(`--color-*`, `--font-*`) injetadas por `ThemeStyle`, então um preset de
+cor/fonte reskina o template inteiro sem tocar em markup — `app/[slug]/
+[[...path]]/page.tsx` despacha direto pro pacote de cada `template.slug`
+(catálogo continua com fallback genérico em `components/store/*` só pra um
+4º template futuro que ainda não tenha port).
 
 `business_type` no template decide o formato de páginas (catálogo = 2
-páginas com carrinho; portfólio = 1 página de blocos). Adicionar um 4º modelo
-= uma pasta nova em `templates/` + uma linha na tabela `templates`, sem tocar
-schema nem motor compartilhado.
+páginas com carrinho; portfólio = 1 página de blocos). Conteúdo da família
+portfólio (equipe, galeria, stats, chips, resultados, sobre, depoimentos)
+mora em `blocks`/`block_items` (ver `lib/blocks.ts`), provisionado
+automaticamente na criação da loja (um `blocks` vazio por
+`manifest.blocks[]`) e editado em `/dashboard/loja/conteudo` — endereço,
+Instagram e WhatsApp continuam campos dedicados de `stores`, não viram
+bloco. Adicionar um 4º modelo = uma pasta nova em `templates/` + uma linha na
+tabela `templates`, sem tocar schema nem motor compartilhado.
 
 ### Paletas e fontes (`lib/theme-presets.ts`)
 
@@ -167,10 +178,16 @@ produção).
   exemplos, presets de cor/fonte, links extras dinâmicos
   (`store_links` — site, App Store, Play Store, outros; Instagram/WhatsApp
   continuam campo dedicado).
-- **Fase 2**: família portfólio (barbearia/clínica) ganha o mesmo tratamento
-  pixel-a-pixel que `adega-mm` já tem (hoje renderiza genérico — ver
-  "Sistema de templates"), generalizando o motor de blocos.
-- **Fase 3**: mais modelos, QR code do link, upload de imagens.
+- **Fase 2 (concluída)**: família portfólio (`barbearia-tnt`, `clinica`)
+  ganha o mesmo tratamento pixel-a-pixel que `adega-mm` (ver "Sistema de
+  templates"), motor de blocos (`blocks`/`block_items`) implementado com
+  provisionamento automático na criação da loja + CRUD em
+  `/dashboard/loja/conteudo`. Campos de foto/logo/capa
+  (`stores.logo_url`/`cover_image_url`) e registro profissional
+  (`stores.professional_credential`, usado pelo `clinica`) também expostos
+  no cadastro — antes existiam no schema mas não tinham campo na UI.
+- **Fase 3**: mais modelos, QR code do link, upload de imagens (hoje é tudo
+  URL colada à mão).
 - **Fase 4**: empacotamento mobile (Capacitor).
 
 ## Ideia anotada pro roadmap: catálogo mestre por segmento

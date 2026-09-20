@@ -16,6 +16,8 @@ const LOJA_PATH = "/dashboard/loja";
 
 const updateStoreSchema = z.object({
   name: z.string().trim().min(2, "Informe o nome da loja."),
+  logoUrl: z.string().trim().url("URL da foto/logo inválida.").optional(),
+  coverImageUrl: z.string().trim().url("URL da foto de capa inválida.").optional(),
   tagline: z.string().trim().optional(),
   bio: z.string().trim().optional(),
   whatsappNumber: z.string().trim().min(10, "Informe um número de WhatsApp válido com DDD."),
@@ -23,6 +25,7 @@ const updateStoreSchema = z.object({
   addressLine: z.string().trim().optional(),
   businessCategory: z.string().trim().min(1, "Escolha o ramo de atividade."),
   cnpj: z.string().trim().optional(),
+  professionalCredential: z.string().trim().optional(),
   colorPresetId: z.string().trim().optional(),
   fontPresetId: z.string().trim().optional(),
 });
@@ -37,6 +40,8 @@ export async function updateStoreAction(_prevState: FormState, formData: FormDat
 
   const parsed = updateStoreSchema.safeParse({
     name: formData.get("name"),
+    logoUrl: formData.get("logoUrl") || undefined,
+    coverImageUrl: formData.get("coverImageUrl") || undefined,
     tagline: formData.get("tagline") || undefined,
     bio: formData.get("bio") || undefined,
     whatsappNumber: formData.get("whatsappNumber"),
@@ -44,6 +49,7 @@ export async function updateStoreAction(_prevState: FormState, formData: FormDat
     addressLine: formData.get("addressLine") || undefined,
     businessCategory: formData.get("businessCategory"),
     cnpj: formData.get("cnpj") || undefined,
+    professionalCredential: formData.get("professionalCredential") || undefined,
     colorPresetId: formData.get("colorPresetId") || undefined,
     fontPresetId: formData.get("fontPresetId") || undefined,
   });
@@ -54,6 +60,8 @@ export async function updateStoreAction(_prevState: FormState, formData: FormDat
 
   const {
     name,
+    logoUrl,
+    coverImageUrl,
     tagline,
     bio,
     whatsappNumber,
@@ -61,6 +69,7 @@ export async function updateStoreAction(_prevState: FormState, formData: FormDat
     addressLine,
     businessCategory,
     cnpj,
+    professionalCredential,
     colorPresetId,
     fontPresetId,
   } = parsed.data;
@@ -81,6 +90,8 @@ export async function updateStoreAction(_prevState: FormState, formData: FormDat
     .update(stores)
     .set({
       name,
+      logoUrl: logoUrl ?? null,
+      coverImageUrl: coverImageUrl ?? null,
       tagline: tagline ?? null,
       bio: bio ?? null,
       whatsappNumber: normalizeWhatsAppNumber(whatsappNumber),
@@ -88,6 +99,7 @@ export async function updateStoreAction(_prevState: FormState, formData: FormDat
       addressLine: addressLine ?? null,
       businessCategory,
       cnpj: cnpjDigits,
+      professionalCredential: professionalCredential ?? null,
       theme: buildThemeOverride(colorPresetId, fontPresetId),
       updatedAt: new Date(),
     })

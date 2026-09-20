@@ -14,6 +14,9 @@ import { CardapioView } from "@/components/store/CardapioView";
 import type { CardapioSection } from "@/components/store/types";
 import { LinkHub as AdegaLinkHub, type LinkHubExtraLink } from "@/templates/adega-mm/LinkHub";
 import { Cardapio as AdegaCardapio } from "@/templates/adega-mm/Cardapio";
+import { Page as BarbeariaPage } from "@/templates/barbearia-tnt/Page";
+import { Page as ClinicaPage } from "@/templates/clinica/Page";
+import { getStoreBlocks, findBlock } from "@/lib/blocks";
 
 type Params = { slug: string; path?: string[] };
 
@@ -121,6 +124,65 @@ export default async function StorePage({ params }: { params: Promise<Params> })
   const theme = resolveTheme(manifest.defaultTheme, store.theme) as TemplateTheme;
   const segment = path?.[0];
   const isAdegaMm = manifest.slug === "adega-mm";
+
+  if (store.businessType === "portfolio") {
+    if (segment) notFound(); // single-page templates — no sub-routes like /cardapio
+
+    const [extraLinks, storeBlocks] = await Promise.all([getExtraLinks(store.id), getStoreBlocks(store.id)]);
+
+    if (manifest.slug === "barbearia-tnt") {
+      return (
+        <>
+          <ThemeStyle theme={theme} />
+          <BarbeariaPage
+            store={{
+              name: store.name,
+              tagline: store.tagline,
+              logoUrl: store.logoUrl,
+              coverImageUrl: store.coverImageUrl,
+              whatsappNumber: store.whatsappNumber,
+              instagramHandle: store.instagramHandle,
+              addressLine: store.addressLine,
+            }}
+            extraLinks={extraLinks}
+            team={findBlock(storeBlocks, "team")?.items ?? []}
+            gallery={findBlock(storeBlocks, "gallery")?.items ?? []}
+          />
+        </>
+      );
+    }
+
+    if (manifest.slug === "clinica") {
+      const businessCategory = findBusinessCategory(store.businessCategory);
+      const about = findBlock(storeBlocks, "about")?.items ?? [];
+      return (
+        <>
+          <ThemeStyle theme={theme} />
+          <ClinicaPage
+            store={{
+              name: store.name,
+              tagline: store.tagline,
+              bio: store.bio,
+              professionalCredential: store.professionalCredential,
+              logoUrl: store.logoUrl,
+              whatsappNumber: store.whatsappNumber,
+              instagramHandle: store.instagramHandle,
+              addressLine: store.addressLine,
+            }}
+            eyebrow={businessCategory?.subMark ?? null}
+            extraLinks={extraLinks}
+            stats={findBlock(storeBlocks, "stats")?.items ?? []}
+            chips={findBlock(storeBlocks, "chips")?.items ?? []}
+            results={findBlock(storeBlocks, "results_carousel")?.items ?? []}
+            about={about[0] ?? null}
+            reviews={findBlock(storeBlocks, "reviews")?.items ?? []}
+          />
+        </>
+      );
+    }
+
+    notFound();
+  }
 
   if (!segment) {
     if (isAdegaMm) {

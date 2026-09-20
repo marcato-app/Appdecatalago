@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/lib/cart";
+import { useSmoothScroll } from "@/lib/useSmoothScroll";
 import { buildOrderMessage, buildWhatsAppLink } from "@/lib/whatsapp";
 import { formatCentsToBRL } from "@/lib/money";
 import type { CardapioProduct, CardapioSection } from "@/components/store/types";
@@ -60,6 +61,7 @@ export function Cardapio({
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const cart = useCart(storeId);
+  useSmoothScroll();
 
   const filteredSections = useMemo(() => filterSections(sections, query), [sections, query]);
   const cartMap = useMemo(() => new Map(cart.entries.map((entry) => [entry.productId, entry])), [cart.entries]);

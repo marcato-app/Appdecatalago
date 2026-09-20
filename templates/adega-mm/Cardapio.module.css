@@ -8,10 +8,6 @@
    original's scroll targets, so this template doesn't rely on IDs for
    styling at all, only for anchor scroll targets. */
 
-:global(html:has(.page)) {
-  scroll-behavior: smooth;
-}
-
 .page {
   --max-width: 720px;
   margin: 0;
