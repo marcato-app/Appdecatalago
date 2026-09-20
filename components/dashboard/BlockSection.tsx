@@ -1,6 +1,11 @@
-import { deleteBlockItemAction, moveBlockItemAction } from "@/app/dashboard/loja/conteudo/actions";
+import { moveBlockItemAction } from "@/app/dashboard/loja/conteudo/actions";
 import { AddBlockItemForm } from "./AddBlockItemForm";
+import { DeleteBlockItemButton } from "./DeleteBlockItemButton";
 import type { BlockDto, BlockItemDto } from "@/lib/blocks";
+
+function itemLabel(item: BlockItemDto): string {
+  return item.title ?? item.body?.slice(0, 30) ?? "item";
+}
 
 export function BlockSection({ block, label, maxItems }: { block: BlockDto; label: string; maxItems?: number }) {
   const canAddMore = maxItems === undefined || block.items.length < maxItems;
@@ -29,12 +34,7 @@ export function BlockSection({ block, label, maxItems }: { block: BlockDto; labe
                   ↓
                 </button>
               </form>
-              <form action={deleteBlockItemAction}>
-                <input type="hidden" name="itemId" value={item.id} />
-                <button type="submit" className="px-1 text-red-600 underline">
-                  excluir
-                </button>
-              </form>
+              <DeleteBlockItemButton itemId={item.id} confirmLabel={itemLabel(item)} />
             </div>
           </div>
         ))}

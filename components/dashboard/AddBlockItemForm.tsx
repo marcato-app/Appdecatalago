@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { addBlockItemAction, type FormState } from "@/app/dashboard/loja/conteudo/actions";
+import { showToast } from "@/lib/toast";
 import type { BlockType } from "@/templates/types";
 import { ImageUploadField } from "./ImageUploadField";
 
@@ -49,7 +50,15 @@ function fieldsFor(type: BlockType): FieldSpec[] {
 }
 
 export function AddBlockItemForm({ blockId, blockType }: { blockId: string; blockType: BlockType }) {
-  const [state, formAction, isPending] = useActionState(addBlockItemAction, initialState);
+  const [state, formAction, isPending] = useActionState(async (prevState: FormState, formData: FormData) => {
+    const result = await addBlockItemAction(prevState, formData);
+    if (result.error) {
+      showToast(result.error, true);
+    } else {
+      showToast("Adicionado");
+    }
+    return result;
+  }, initialState);
   const fields = fieldsFor(blockType);
   const inputClass =
     "rounded-lg border border-zinc-300 px-2 py-1.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400";

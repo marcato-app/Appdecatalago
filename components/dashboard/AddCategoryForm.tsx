@@ -2,11 +2,20 @@
 
 import { useActionState } from "react";
 import { addCategoryAction, type FormState } from "@/app/dashboard/loja/produtos/actions";
+import { showToast } from "@/lib/toast";
 
 const initialState: FormState = {};
 
 export function AddCategoryForm({ parentId, label }: { parentId?: string; label: string }) {
-  const [state, formAction, isPending] = useActionState(addCategoryAction, initialState);
+  const [state, formAction, isPending] = useActionState(async (prevState: FormState, formData: FormData) => {
+    const result = await addCategoryAction(prevState, formData);
+    if (result.error) {
+      showToast(result.error, true);
+    } else {
+      showToast("Adicionado");
+    }
+    return result;
+  }, initialState);
 
   return (
     <form action={formAction} className="flex flex-wrap items-center gap-2">

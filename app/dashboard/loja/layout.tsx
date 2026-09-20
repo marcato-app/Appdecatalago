@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/auth/session";
 import { getStoreByOwnerId } from "@/lib/stores";
 import { LogoutButton } from "@/components/dashboard/LogoutButton";
 import { NavLink } from "@/components/dashboard/NavLink";
+import { ToastHost } from "@/components/dashboard/ToastHost";
 
 // Shared shell (logo, loja/produtos nav, "ver loja", sair) for every screen
 // under /dashboard/loja/** — including /nova, where there's no store yet,
@@ -44,6 +45,7 @@ export default async function DashboardShellLayout({ children }: { children: Rea
       </header>
 
       <div className="flex flex-1 flex-col">{children}</div>
+      <ToastHost />
     </div>
   );
 }

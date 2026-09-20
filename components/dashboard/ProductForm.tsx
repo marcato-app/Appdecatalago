@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import type { FormState } from "@/app/dashboard/loja/produtos/actions";
+import { showToast } from "@/lib/toast";
 import { ImageUploadField } from "./ImageUploadField";
 
 const initialState: FormState = {};
@@ -36,7 +37,12 @@ export function ProductForm({
 }) {
   const [state, formAction, isPending] = useActionState(async (prevState: FormState, formData: FormData) => {
     const result = await action(prevState, formData);
-    if (!result.error) onDone?.();
+    if (result.error) {
+      showToast(result.error, true);
+    } else {
+      showToast(productId ? "Salvo" : "Produto adicionado");
+      onDone?.();
+    }
     return result;
   }, initialState);
 

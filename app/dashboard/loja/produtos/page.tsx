@@ -93,9 +93,9 @@ export default async function ProdutosPage() {
               </div>
             </div>
 
-            <div className="mt-2 flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800">
+            <div className="mt-2 flex flex-col gap-1">
               {(productsByCategory.get(section.id) ?? []).map((product) => (
-                <ProductItem key={product.id} product={product} categories={categoryOptions} />
+                <ProductItem key={product.id} product={product} />
               ))}
             </div>
             <div className="mt-2">
@@ -133,9 +133,9 @@ export default async function ProdutosPage() {
                     </div>
                   </div>
 
-                  <div className="mt-1 flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800">
+                  <div className="mt-1 flex flex-col gap-1">
                     {(productsByCategory.get(group.id) ?? []).map((product) => (
-                      <ProductItem key={product.id} product={product} categories={categoryOptions} />
+                      <ProductItem key={product.id} product={product} />
                     ))}
                   </div>
                   <div className="mt-2">
