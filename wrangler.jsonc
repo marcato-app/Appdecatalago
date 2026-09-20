@@ -3,6 +3,9 @@
 	"main": ".open-next/worker.js",
 	"name": "flip",
 	"compatibility_date": "2026-09-20",
+	// flip.<subdomínio-da-conta>.workers.dev — não depende do marcatoapp.com.br,
+	// então não tem como brigar com nenhum outro projeto que já esteja lá.
+	"workers_dev": true,
 	"routes": [
 		{ "pattern": "flip.marcatoapp.com.br", "custom_domain": true }
 	],
