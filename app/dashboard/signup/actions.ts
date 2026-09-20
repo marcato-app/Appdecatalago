@@ -5,8 +5,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db/client";
 import { users } from "@/db/schema";
-import { hashPassword } from "@/lib/auth/password";
-import { createSession } from "@/lib/auth/session";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const signupSchema = z.object({
   name: z.string().trim().min(2, "Informe seu nome."),
@@ -16,6 +15,17 @@ const signupSchema = z.object({
 
 export interface FormState {
   error?: string;
+  notice?: string;
+}
+
+function translateSignupError(message: string): string {
+  if (message.includes("already registered") || message.includes("already exists")) {
+    return "Já existe uma conta com esse e-mail.";
+  }
+  if (message.includes("Password")) {
+    return "Senha inválida — use pelo menos 8 caracteres.";
+  }
+  return message;
 }
 
 export async function signupAction(_prevState: FormState, formData: FormData): Promise<FormState> {
@@ -31,14 +41,26 @@ export async function signupAction(_prevState: FormState, formData: FormData): P
 
   const { name, email, password } = parsed.data;
 
-  const existing = await db.query.users.findFirst({ where: eq(users.email, email) });
-  if (existing) {
-    return { error: "Já existe uma conta com esse e-mail." };
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { name } } });
+
+  if (error) {
+    return { error: translateSignupError(error.message) };
+  }
+  if (!data.user) {
+    return { error: "Não foi possível criar a conta." };
   }
 
-  const passwordHash = await hashPassword(password);
-  const [user] = await db.insert(users).values({ name, email, passwordHash }).returning({ id: users.id });
+  const existingProfile = await db.query.users.findFirst({ where: eq(users.email, email) });
+  if (!existingProfile) {
+    await db.insert(users).values({ email, name, authProviderId: data.user.id });
+  }
 
-  await createSession(user.id);
+  if (!data.session) {
+    // Email confirmation is enabled on this Supabase project — no session
+    // yet, so there's nothing to redirect into.
+    return { notice: "Conta criada! Confirme seu e-mail (verifique a caixa de entrada) e depois faça login." };
+  }
+
   redirect("/dashboard");
 }

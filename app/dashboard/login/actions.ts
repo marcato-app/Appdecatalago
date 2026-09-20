@@ -1,12 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { db } from "@/db/client";
-import { users } from "@/db/schema";
-import { verifyPassword } from "@/lib/auth/password";
-import { createSession } from "@/lib/auth/session";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email("E-mail inválido."),
@@ -27,15 +23,12 @@ export async function loginAction(_prevState: FormState, formData: FormData): Pr
     return { error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
   }
 
-  const { email, password } = parsed.data;
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.signInWithPassword(parsed.data);
 
-  const user = await db.query.users.findFirst({ where: eq(users.email, email) });
-  const passwordMatches = user?.passwordHash ? await verifyPassword(password, user.passwordHash) : false;
-
-  if (!user || !passwordMatches) {
+  if (error) {
     return { error: "E-mail ou senha incorretos." };
   }
 
-  await createSession(user.id);
   redirect("/dashboard");
 }

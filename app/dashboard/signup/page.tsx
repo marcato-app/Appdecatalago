@@ -57,6 +57,7 @@ export default function SignupPage() {
           </div>
 
           {state?.error ? <p className="text-sm text-red-600">{state.error}</p> : null}
+          {state?.notice ? <p className="text-sm text-green-600">{state.notice}</p> : null}
 
           <button
             type="submit"

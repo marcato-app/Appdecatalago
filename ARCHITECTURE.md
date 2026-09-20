@@ -93,32 +93,50 @@ schema nem motor compartilhado.
   fresco — sem precisar de ISR por enquanto.
 - Slugs validados contra lista de palavras reservadas (`dashboard`, `api`,
   `login`...).
-- Painel: `app/dashboard/**`, protegido pela sessão local (ver "Auth" abaixo)
-  via `proxy.ts` + `requireUser()`/`requireOwnedStore()` em cada
-  página/action, todo acesso ao banco filtrado por `owner_id`/`store_id`.
+- Painel: `app/dashboard/**`, protegido pela sessão do Supabase Auth (ver
+  "Auth" abaixo) via `proxy.ts` + `requireUser()`/`requireOwnedStore()` em
+  cada página/action, todo acesso ao banco filtrado por `owner_id`/`store_id`.
   Toda mutação chama `revalidatePath()` — Server Actions não atualizam a
   página que as invocou sozinhas, isso só acontece com `redirect()`,
   `revalidatePath()`/`revalidateTag()` ou `refresh()` explícitos.
 
-## Auth (Fase 1 — local, antes do Supabase)
+## Auth
 
-Sem projeto Supabase conectado ainda, o login/cadastro do lojista usa uma
-implementação local (`lib/auth/`): senha com hash `scrypt` (`password.ts`),
-sessão em cookie assinado por HMAC (`token.ts` + `session.ts`). Todo o app só
-fala com `requireUser()`/`getCurrentUser()` — trocar para Supabase Auth mais
-tarde é mexer nesse módulo e nas actions de login/signup, sem tocar o resto
-do painel. Exige uma coluna `users.password_hash` (nullable) que não existia
-no desenho original com Supabase Auth.
+Login/cadastro do lojista usa **Supabase Auth** de verdade (email+senha),
+via `@supabase/ssr`: `lib/supabase/server.ts` (client por request, usado nas
+Server Actions de login/signup/logout e em `getCurrentUser()`) e `proxy.ts`
+(refresca a sessão a cada request em `/dashboard/**`, mesmo padrão
+recomendado pelo Supabase pra Next.js App Router).
+
+A tabela `users` do nosso schema é um perfil próprio (nome, e é o que
+`stores.owner_id` referencia), ligado ao usuário do Supabase Auth por
+`auth_provider_id`. `getCurrentUser()` busca por esse campo e cria o perfil
+na primeira vez que vê um `auth.users` novo (rede de segurança — normalmente
+quem cria é a própria action de signup). Todo o resto do painel só fala com
+`requireUser()`/`getCurrentUser()` — nenhuma outra parte do app sabe que é
+Supabase por trás.
+
+A coluna `users.password_hash` (de uma versão local/provisória do login
+usada antes de conectar o Supabase) ficou sem uso — inofensiva, pode ser
+removida numa limpeza futura.
+
+**Limitação conhecida**: sandboxes do Claude Code (onde esse projeto foi
+construído) não alcançam o Postgres do Supabase (conexão direta, não-HTTP)
+nem hosts fora da allowlist de rede — então migrations rodam colando o SQL
+direto no SQL Editor do painel do Supabase, e o login com Supabase de
+verdade só é testável rodando o app fora do sandbox (máquina local ou
+produção).
 
 ## Fases
 
 - **Fase 0 (concluída)**: fundação do projeto — scaffold Next.js, schema
   Drizzle, estrutura de templates, esta documentação.
 - **Fase 1 (concluída)**: loop completo com UM template — família
-  **catálogo** (estilo Adega MM): cadastro/login (auth local, ver acima),
-  criar loja, CRUD de categorias/produtos, página pública com busca/
-  carrinho/checkout no WhatsApp, publicar/despublicar. Testado localmente
-  (Postgres local, sem Supabase ainda).
+  **catálogo** (estilo Adega MM): cadastro/login, criar loja, CRUD de
+  categorias/produtos, página pública com busca/carrinho/checkout no
+  WhatsApp, publicar/despublicar. Testado localmente (Postgres local) e
+  depois conectado a um projeto Supabase real (schema aplicado via SQL
+  Editor, login migrado pra Supabase Auth — ver "Auth" acima).
 - **Fase 2**: família portfólio (barbearia/clínica), generalizando o motor de
   blocos; tela de escolha de modelo.
 - **Fase 3**: mais modelos, QR code do link, upload de imagens, tema

@@ -1,43 +1,37 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
 import { db } from "@/db/client";
 import { users } from "@/db/schema";
-import { SESSION_COOKIE_NAME, SESSION_TTL_SECONDS, decodeSessionToken, encodeSessionToken } from "./token";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-// Local session implementation used before a real Supabase project is
-// connected (see ARCHITECTURE.md "Auth"). Every call site only ever talks to
-// getCurrentUser()/requireUser(), so swapping this module for Supabase Auth
-// later doesn't touch dashboard pages/actions.
-
-export async function createSession(userId: string): Promise<void> {
-  const expiresAt = Date.now() + SESSION_TTL_SECONDS * 1000;
-  const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE_NAME, encodeSessionToken(userId, expiresAt), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: SESSION_TTL_SECONDS,
-  });
-}
-
-export async function destroySession(): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.delete(SESSION_COOKIE_NAME);
-}
-
-export async function getSessionUserId(): Promise<string | null> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-  if (!token) return null;
-  return decodeSessionToken(token)?.userId ?? null;
-}
-
+// Backed by Supabase Auth. `users` here is our own profile table (name,
+// links to stores etc.) — `authProviderId` links each row to the matching
+// Supabase auth user. Every dashboard page/action only ever calls
+// getCurrentUser()/requireUser(), so this is the one place that knows about
+// Supabase specifically.
 export async function getCurrentUser() {
-  const userId = await getSessionUserId();
-  if (!userId) return null;
-  return (await db.query.users.findFirst({ where: eq(users.id, userId) })) ?? null;
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+
+  if (!authUser?.email) return null;
+
+  const existing = await db.query.users.findFirst({ where: eq(users.authProviderId, authUser.id) });
+  if (existing) return existing;
+
+  // First time we see this Supabase auth user (normally created already by
+  // the signup action — this is just a safety net, e.g. for a future OAuth
+  // provider that skips our own signup form).
+  const [created] = await db
+    .insert(users)
+    .values({
+      email: authUser.email,
+      authProviderId: authUser.id,
+      name: typeof authUser.user_metadata?.name === "string" ? authUser.user_metadata.name : null,
+    })
+    .returning();
+  return created;
 }
 
 /** Redirects to login when there's no valid session. Use at the top of every
