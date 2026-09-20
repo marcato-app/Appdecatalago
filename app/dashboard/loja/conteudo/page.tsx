@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db } from "@/db/client";
@@ -19,20 +18,18 @@ export default async function ConteudoPage() {
   const storeBlocks = await getStoreBlocks(store.id);
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-12">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Conteúdo</h1>
-        <Link href="/dashboard/loja" className="text-sm underline">
-          ← Voltar
-        </Link>
+    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-10">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Conteúdo</h1>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          Instagram, WhatsApp e endereço já ficam na tela da loja — aqui é só o conteúdo específico do seu modelo.
+        </p>
       </div>
 
-      <p className="text-sm text-zinc-500">
-        Instagram, WhatsApp e endereço já ficam na tela anterior — aqui é só o conteúdo específico do seu modelo.
-      </p>
-
       {storeBlocks.length === 0 ? (
-        <p className="text-sm text-zinc-500">Esse modelo não tem seções de conteúdo configuráveis.</p>
+        <p className="rounded-2xl border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700">
+          Esse modelo não tem seções de conteúdo configuráveis.
+        </p>
       ) : (
         <div className="flex flex-col gap-6">
           {storeBlocks.map((block) => {

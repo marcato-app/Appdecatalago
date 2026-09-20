@@ -51,7 +51,7 @@ export function AddBlockItemForm({ blockId, blockType }: { blockId: string; bloc
   const [state, formAction, isPending] = useActionState(addBlockItemAction, initialState);
   const fields = fieldsFor(blockType);
   const inputClass =
-    "rounded-lg border border-zinc-300 px-2 py-1.5 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300";
+    "rounded-lg border border-zinc-300 px-2 py-1.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400";
 
   return (
     <form action={formAction} className="flex flex-col gap-2 rounded-lg border border-zinc-200 p-3 dark:border-zinc-800">

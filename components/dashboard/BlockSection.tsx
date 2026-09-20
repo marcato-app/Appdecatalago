@@ -6,7 +6,7 @@ export function BlockSection({ block, label, maxItems }: { block: BlockDto; labe
   const canAddMore = maxItems === undefined || block.items.length < maxItems;
 
   return (
-    <div className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+    <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
       <h2 className="text-lg font-semibold">{label}</h2>
 
       <div className="mt-2 flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800">

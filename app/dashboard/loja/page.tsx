@@ -3,7 +3,6 @@ import { eq, asc } from "drizzle-orm";
 import { db } from "@/db/client";
 import { storeLinks } from "@/db/schema";
 import { requireOwnedStore } from "@/lib/stores";
-import { LogoutButton } from "@/components/dashboard/LogoutButton";
 import { StoreEditForm } from "@/components/dashboard/StoreEditForm";
 import { StoreLinksManager } from "@/components/dashboard/StoreLinksManager";
 import { togglePublishAction } from "./actions";
@@ -18,55 +17,73 @@ export default async function LojaPage() {
     .orderBy(asc(storeLinks.sortOrder));
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-8 px-6 py-12">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Sua loja</h1>
-        <LogoutButton />
+    <div className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-6 px-6 py-10">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Sua loja</h1>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{store.name}</p>
       </div>
 
-      <div className="flex flex-col gap-3 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+      <div className="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm text-zinc-500">Status</p>
-            <p className="font-medium">{isPublished ? "Publicada" : "Rascunho"}</p>
+          <div className="flex items-center gap-2">
+            <span
+              className={`h-2 w-2 rounded-full ${isPublished ? "bg-emerald-500" : "bg-amber-500"}`}
+              aria-hidden="true"
+            />
+            <span className="text-sm font-medium">{isPublished ? "Publicada" : "Rascunho"}</span>
           </div>
           <form action={togglePublishAction}>
             <button
               type="submit"
-              className="rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+              className="rounded-full border border-zinc-300 px-4 py-1.5 text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
             >
               {isPublished ? "Despublicar" : "Publicar"}
             </button>
           </form>
         </div>
 
-        <div>
-          <p className="text-sm text-zinc-500">Link público</p>
-          {isPublished ? (
-            <Link href={`/${store.slug}`} className="font-medium underline" target="_blank">
-              /{store.slug}
-            </Link>
-          ) : (
-            <p className="font-medium text-zinc-400">
-              /{store.slug} <span className="text-xs">(publique pra ativar)</span>
-            </p>
-          )}
+        <div className="flex items-center justify-between gap-3 rounded-xl bg-zinc-50 px-4 py-3 dark:bg-zinc-950">
+          <div className="min-w-0">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Link público</p>
+            {isPublished ? (
+              <Link href={`/${store.slug}`} target="_blank" className="truncate font-medium text-violet-600 hover:underline dark:text-violet-400">
+                /{store.slug}
+              </Link>
+            ) : (
+              <p className="truncate font-medium text-zinc-400">
+                /{store.slug} <span className="text-xs">(publique pra ativar)</span>
+              </p>
+            )}
+          </div>
         </div>
 
         {store.businessType === "catalog" ? (
-          <Link href="/dashboard/loja/produtos" className="text-sm font-medium underline">
-            Gerenciar produtos →
+          <Link
+            href="/dashboard/loja/produtos"
+            className="flex items-center justify-between rounded-xl border border-zinc-200 px-4 py-3 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/60"
+          >
+            Gerenciar produtos <span aria-hidden="true">→</span>
           </Link>
         ) : (
-          <Link href="/dashboard/loja/conteudo" className="text-sm font-medium underline">
-            Gerenciar conteúdo →
+          <Link
+            href="/dashboard/loja/conteudo"
+            className="flex items-center justify-between rounded-xl border border-zinc-200 px-4 py-3 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/60"
+          >
+            Gerenciar conteúdo <span aria-hidden="true">→</span>
           </Link>
         )}
       </div>
 
-      <StoreEditForm store={store} />
+      <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          Dados da loja
+        </h2>
+        <StoreEditForm store={store} />
+      </div>
 
-      <StoreLinksManager links={links} />
+      <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <StoreLinksManager links={links} />
+      </div>
     </div>
   );
 }

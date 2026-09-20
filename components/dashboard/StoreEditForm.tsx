@@ -32,7 +32,7 @@ export function StoreEditForm({ store }: { store: Store }) {
           type="text"
           required
           defaultValue={store.name}
-          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
         />
       </div>
 
@@ -46,7 +46,7 @@ export function StoreEditForm({ store }: { store: Store }) {
           type="url"
           placeholder="https://…"
           defaultValue={store.logoUrl ?? ""}
-          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
         />
       </div>
 
@@ -60,7 +60,7 @@ export function StoreEditForm({ store }: { store: Store }) {
           type="url"
           placeholder="https://…"
           defaultValue={store.coverImageUrl ?? ""}
-          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
         />
       </div>
 
@@ -73,7 +73,7 @@ export function StoreEditForm({ store }: { store: Store }) {
           name="tagline"
           type="text"
           defaultValue={store.tagline ?? ""}
-          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
         />
       </div>
 
@@ -86,7 +86,7 @@ export function StoreEditForm({ store }: { store: Store }) {
           name="bio"
           rows={3}
           defaultValue={store.bio ?? ""}
-          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
         />
       </div>
 
@@ -100,7 +100,7 @@ export function StoreEditForm({ store }: { store: Store }) {
           type="tel"
           required
           defaultValue={store.whatsappNumber ?? ""}
-          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
         />
       </div>
 
@@ -113,7 +113,7 @@ export function StoreEditForm({ store }: { store: Store }) {
           name="instagramHandle"
           type="text"
           defaultValue={store.instagramHandle ?? ""}
-          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
         />
       </div>
 
@@ -126,7 +126,7 @@ export function StoreEditForm({ store }: { store: Store }) {
           name="addressLine"
           type="text"
           defaultValue={store.addressLine ?? ""}
-          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
         />
       </div>
 
@@ -140,7 +140,7 @@ export function StoreEditForm({ store }: { store: Store }) {
           type="text"
           placeholder="00.000.000/0000-00"
           defaultValue={store.cnpj ? formatCnpj(store.cnpj) : ""}
-          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
         />
       </div>
 
@@ -154,7 +154,7 @@ export function StoreEditForm({ store }: { store: Store }) {
           type="text"
           placeholder="Ex: CRBM 67.764"
           defaultValue={store.professionalCredential ?? ""}
-          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
         />
       </div>
 
@@ -166,7 +166,7 @@ export function StoreEditForm({ store }: { store: Store }) {
           id="businessCategory"
           name="businessCategory"
           defaultValue={store.businessCategory ?? BUSINESS_CATEGORIES[0].id}
-          className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+          className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
         >
           {BUSINESS_CATEGORIES.map((category) => (
             <option key={category.id} value={category.id}>
@@ -191,7 +191,7 @@ export function StoreEditForm({ store }: { store: Store }) {
               />
               <span
                 className={`flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border-2 ${
-                  colorPresetId === preset.id ? "border-zinc-900 dark:border-zinc-100" : "border-transparent"
+                  colorPresetId === preset.id ? "border-violet-500 dark:border-violet-400" : "border-transparent"
                 }`}
                 style={{ background: preset.colors.background }}
               >
@@ -212,7 +212,7 @@ export function StoreEditForm({ store }: { store: Store }) {
           name="fontPresetId"
           value={fontPresetId}
           onChange={(event) => setFontPresetId(event.target.value)}
-          className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+          className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
         >
           {FONT_PRESETS.map((preset) => (
             <option key={preset.id} value={preset.id}>
@@ -228,7 +228,7 @@ export function StoreEditForm({ store }: { store: Store }) {
       <button
         type="submit"
         disabled={isPending}
-        className="mt-2 self-start rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-60 dark:hover:bg-[#ccc]"
+        className="mt-2 self-start rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-violet-700 disabled:opacity-60"
       >
         {isPending ? "Salvando..." : "Salvar"}
       </button>

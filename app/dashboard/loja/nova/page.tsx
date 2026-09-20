@@ -33,12 +33,17 @@ export default function NovaLojaPage() {
   );
 
   return (
-    <div className="flex flex-1 flex-col items-center px-6 py-16">
+    <div className="flex flex-1 flex-col items-center px-6 py-12">
       <div className="w-full max-w-lg">
-        <h1 className="text-2xl font-semibold">Crie sua loja</h1>
-        <p className="mt-1 text-sm text-zinc-500">Leva menos de 2 minutos. Você pode mudar tudo isso depois.</p>
+        <h1 className="text-2xl font-bold tracking-tight">Crie sua loja</h1>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          Leva menos de 2 minutos. Você pode mudar tudo isso depois.
+        </p>
 
-        <form action={formAction} className="mt-8 flex flex-col gap-6">
+        <form
+          action={formAction}
+          className="mt-6 flex flex-col gap-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+        >
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <label htmlFor="name" className="text-sm font-medium">
@@ -52,7 +57,7 @@ export default function NovaLojaPage() {
                 onChange={(event) => {
                   if (!slugEditedManually) setSlug(slugPreview(event.target.value));
                 }}
-                className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+                className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
               />
             </div>
 
@@ -72,7 +77,7 @@ export default function NovaLojaPage() {
                     setSlugEditedManually(true);
                     setSlug(event.target.value);
                   }}
-                  className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-foreground outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+                  className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-foreground outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
                 />
               </div>
             </div>
@@ -87,7 +92,7 @@ export default function NovaLojaPage() {
                 type="tel"
                 placeholder="11987654321"
                 required
-                className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+                className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
               />
             </div>
 
@@ -100,7 +105,7 @@ export default function NovaLojaPage() {
                 name="cnpj"
                 type="text"
                 placeholder="00.000.000/0000-00"
-                className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+                className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
               />
             </div>
           </div>
@@ -114,7 +119,7 @@ export default function NovaLojaPage() {
               name="businessCategory"
               value={businessCategory}
               onChange={(event) => setBusinessCategory(event.target.value)}
-              className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+              className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
             >
               {BUSINESS_CATEGORIES.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -126,7 +131,7 @@ export default function NovaLojaPage() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium">Modelo do catálogo</span>
+            <span className="text-sm font-medium">Modelo</span>
             <div className="flex flex-col gap-2">
               {templateManifests.map((template) => {
                 const recommended = recommendedSlugs.includes(template.slug);
@@ -135,7 +140,7 @@ export default function NovaLojaPage() {
                     key={template.slug}
                     className={`flex cursor-pointer flex-col gap-1 rounded-xl border p-3 text-sm transition-colors ${
                       templateSlug === template.slug
-                        ? "border-zinc-900 bg-zinc-50 dark:border-zinc-100 dark:bg-zinc-900"
+                        ? "border-violet-500 bg-violet-50 dark:border-violet-400 dark:bg-violet-950/40"
                         : "border-zinc-300 dark:border-zinc-700"
                     }`}
                   >
@@ -157,11 +162,6 @@ export default function NovaLojaPage() {
                       ) : null}
                     </span>
                     <span className="pl-5 text-xs text-zinc-500">{template.description}</span>
-                    {template.slug !== "adega-mm" ? (
-                      <span className="pl-5 text-xs text-amber-600 dark:text-amber-400">
-                        Visual completo ainda em construção — por enquanto sua loja usa um layout simplificado nesse modelo.
-                      </span>
-                    ) : null}
                   </label>
                 );
               })}
@@ -183,7 +183,7 @@ export default function NovaLojaPage() {
                   />
                   <span
                     className={`flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border-2 ${
-                      colorPresetId === preset.id ? "border-zinc-900 dark:border-zinc-100" : "border-transparent"
+                      colorPresetId === preset.id ? "border-violet-500 dark:border-violet-400" : "border-transparent"
                     }`}
                     style={{ background: preset.colors.background }}
                   >
@@ -204,7 +204,7 @@ export default function NovaLojaPage() {
               name="fontPresetId"
               value={fontPresetId}
               onChange={(event) => setFontPresetId(event.target.value)}
-              className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+              className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
             >
               {FONT_PRESETS.map((preset) => (
                 <option key={preset.id} value={preset.id}>
@@ -219,7 +219,7 @@ export default function NovaLojaPage() {
           <button
             type="submit"
             disabled={isPending}
-            className="mt-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-60 dark:hover:bg-[#ccc]"
+            className="mt-2 rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-violet-700 disabled:opacity-60"
           >
             {isPending ? "Criando loja..." : "Criar loja"}
           </button>

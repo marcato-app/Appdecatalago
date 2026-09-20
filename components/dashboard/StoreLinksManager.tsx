@@ -53,7 +53,7 @@ export function StoreLinksManager({ links }: { links: StoreLink[] }) {
           <select
             name="type"
             defaultValue="website"
-            className="rounded-lg border border-zinc-300 bg-transparent px-2 py-1.5 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+            className="rounded-lg border border-zinc-300 bg-transparent px-2 py-1.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
           >
             {Object.entries(LINK_TYPE_LABELS).map(([value, label]) => (
               <option key={value} value={value}>
@@ -66,7 +66,7 @@ export function StoreLinksManager({ links }: { links: StoreLink[] }) {
             type="text"
             placeholder="Nome (ex: Facebook)"
             required
-            className="flex-1 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+            className="flex-1 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
           />
         </div>
         <input
@@ -74,7 +74,7 @@ export function StoreLinksManager({ links }: { links: StoreLink[] }) {
           type="url"
           placeholder="https://…"
           required
-          className="rounded-lg border border-zinc-300 px-2 py-1.5 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+          className="rounded-lg border border-zinc-300 px-2 py-1.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
         />
         {state?.error ? <p className="text-xs text-red-600">{state.error}</p> : null}
         <button

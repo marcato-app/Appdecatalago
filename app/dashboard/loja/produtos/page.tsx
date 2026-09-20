@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
@@ -48,21 +47,24 @@ export default async function ProdutosPage() {
   }));
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-12">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Produtos</h1>
-        <Link href="/dashboard/loja" className="text-sm underline">
-          ← Voltar
-        </Link>
+    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-10">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Produtos</h1>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Seções, grupos e itens do seu cardápio.</p>
       </div>
 
       {sections.length === 0 ? (
-        <p className="text-sm text-zinc-500">Nenhuma seção ainda. Crie a primeira abaixo (ex: &quot;Cervejas&quot;).</p>
+        <p className="rounded-2xl border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700">
+          Nenhuma seção ainda. Crie a primeira abaixo (ex: &quot;Cervejas&quot;).
+        </p>
       ) : null}
 
       <div className="flex flex-col gap-6">
         {sections.map((section) => (
-          <div key={section.id} className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+          <div
+            key={section.id}
+            className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+          >
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-lg font-semibold">{section.name}</h2>
               <div className="flex items-center gap-1 text-sm">

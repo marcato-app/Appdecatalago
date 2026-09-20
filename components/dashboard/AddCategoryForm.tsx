@@ -16,7 +16,7 @@ export function AddCategoryForm({ parentId, label }: { parentId?: string; label:
         name="name"
         placeholder={label}
         required
-        className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-300"
+        className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
       />
       <button
         type="submit"
