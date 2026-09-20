@@ -4,28 +4,29 @@ import * as schema from "./schema";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;
 
-let cached: Db | undefined;
-
-// Lazy on purpose: Next.js imports every route module during the build's
-// "collect page data" step just to inspect it, without ever calling
-// anything on `db`. DATABASE_URL is only available at runtime on
-// Cloudflare (injected as a Worker secret, not present at build time), so
-// throwing eagerly at import time broke the build. A Proxy defers the
-// env check and the actual connection to the first real property access.
+// No caching across calls, on purpose — two reasons:
+// 1. Next.js imports every route module during the build's "collect page
+//    data" step just to inspect it, without ever calling anything on `db`.
+//    DATABASE_URL is only available at runtime on Cloudflare (injected as a
+//    Worker secret, not present at build time), so touching it at import
+//    time broke the build.
+// 2. On Cloudflare Workers, a socket (like a Postgres TCP connection)
+//    belongs to the request that opened it — reusing one across requests in
+//    the same isolate hangs instead of erroring, which is exactly what
+//    happened when this used to cache a client at module scope. A fresh
+//    connection per call is the correct-and-simple fix; DATABASE_URL should
+//    point at Supabase's transaction-mode pooler (port 6543,
+//    ?pgbouncer=true), which is built for short-lived connections like this.
 function getDb(): Db {
-  if (!cached) {
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) {
-      throw new Error("DATABASE_URL is not set. Copy .env.example to .env.local and fill it in.");
-    }
-    // prepare: false — required when connecting through Supabase's
-    // pgbouncer pooler (transaction mode doesn't support prepared
-    // statements), and harmless on a direct/session connection, so it's
-    // set unconditionally rather than branching on the connection string.
-    const queryClient = postgres(connectionString, { prepare: false });
-    cached = drizzle(queryClient, { schema });
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error("DATABASE_URL is not set. Copy .env.example to .env.local and fill it in.");
   }
-  return cached;
+  // prepare: false — required when connecting through a pgbouncer pooler
+  // (transaction mode doesn't support prepared statements), and harmless on
+  // a direct/session connection, so it's set unconditionally.
+  const queryClient = postgres(connectionString, { prepare: false, max: 1 });
+  return drizzle(queryClient, { schema });
 }
 
 export const db: Db = new Proxy({} as Db, {
