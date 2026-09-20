@@ -7,6 +7,7 @@ import { db } from "@/db/client";
 import { categories, products } from "@/db/schema";
 import { requireOwnedStore } from "@/lib/stores";
 import { parseBRLToCents } from "@/lib/money";
+import { imageRefSchema } from "@/lib/image-ref";
 
 // Server Actions don't auto-refresh the invoking page's data (that's only
 // true for plain navigations) — every mutation below calls this so the
@@ -92,7 +93,7 @@ const productSchema = z.object({
   price: z.string().trim().min(1, "Informe o preço."),
   unitLabel: z.string().trim().optional(),
   description: z.string().trim().optional(),
-  imageUrl: z.string().trim().optional(),
+  imageUrl: imageRefSchema.optional(),
 });
 
 async function parseProductForm(formData: FormData): Promise<

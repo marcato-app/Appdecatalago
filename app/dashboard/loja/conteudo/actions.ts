@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db } from "@/db/client";
 import { blocks, blockItems } from "@/db/schema";
 import { requireOwnedStore } from "@/lib/stores";
+import { imageRefSchema } from "@/lib/image-ref";
 import type { BlockType } from "@/templates/types";
 
 const CONTEUDO_PATH = "/dashboard/loja/conteudo";
@@ -23,7 +24,7 @@ async function findOwnedBlock(blockId: string) {
 
 const addBlockItemSchema = z.object({
   blockId: z.string().uuid(),
-  imageUrl: z.string().trim().optional(),
+  imageUrl: imageRefSchema.optional(),
   title: z.string().trim().optional(),
   subtitle: z.string().trim().optional(),
   body: z.string().trim().optional(),

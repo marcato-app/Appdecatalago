@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import type { FormState } from "@/app/dashboard/loja/produtos/actions";
+import { ImageUploadField } from "./ImageUploadField";
 
 const initialState: FormState = {};
 
@@ -87,13 +88,9 @@ export function ProductForm({
           defaultValue={defaultValues?.description}
           className="col-span-2 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
         />
-        <input
-          type="text"
-          name="imageUrl"
-          placeholder="URL da imagem (opcional)"
-          defaultValue={defaultValues?.imageUrl}
-          className="col-span-2 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
-        />
+        <div className="col-span-2">
+          <ImageUploadField name="imageUrl" label="Foto (opcional)" defaultValue={defaultValues?.imageUrl} />
+        </div>
       </div>
 
       {state?.error ? <p className="text-sm text-red-600">{state.error}</p> : null}

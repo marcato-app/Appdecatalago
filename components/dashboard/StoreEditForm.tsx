@@ -7,6 +7,7 @@ import { BUSINESS_CATEGORIES } from "@/lib/business-categories";
 import { COLOR_PRESETS, FONT_PRESETS, matchPresetIds } from "@/lib/theme-presets";
 import { formatCnpj } from "@/lib/cnpj";
 import type { TemplateTheme } from "@/templates/types";
+import { ImageUploadField } from "./ImageUploadField";
 
 const initialState: FormState = {};
 
@@ -36,33 +37,15 @@ export function StoreEditForm({ store }: { store: Store }) {
         />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="logoUrl" className="text-sm font-medium">
-          Foto/logo <span className="font-normal text-zinc-500">(URL da imagem)</span>
-        </label>
-        <input
-          id="logoUrl"
-          name="logoUrl"
-          type="url"
-          placeholder="https://…"
-          defaultValue={store.logoUrl ?? ""}
-          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
-        />
-      </div>
+      <ImageUploadField name="logoUrl" label="Foto/logo" defaultValue={store.logoUrl} />
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="coverImageUrl" className="text-sm font-medium">
-          Foto de capa <span className="font-normal text-zinc-500">(opcional — URL da imagem)</span>
-        </label>
-        <input
-          id="coverImageUrl"
-          name="coverImageUrl"
-          type="url"
-          placeholder="https://…"
-          defaultValue={store.coverImageUrl ?? ""}
-          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400"
-        />
-      </div>
+      <ImageUploadField
+        name="coverImageUrl"
+        label="Foto de capa"
+        helpText="Opcional — usada como fundo do topo em alguns modelos."
+        defaultValue={store.coverImageUrl}
+        aspect="wide"
+      />
 
       <div className="flex flex-col gap-1">
         <label htmlFor="tagline" className="text-sm font-medium">

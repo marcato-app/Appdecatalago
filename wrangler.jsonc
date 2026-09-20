@@ -36,5 +36,15 @@
 		// Enable image optimization
 		// see https://opennext.js.org/cloudflare/howtos/image
 		"binding": "IMAGES"
-	}
+	},
+	"r2_buckets": [
+		{
+			// Fotos enviadas por upload (logo/capa da loja, produtos, equipe,
+			// galeria, resultados...). Servidas de volta pelo próprio Worker em
+			// app/api/uploads/[key]/route.ts — sem custom domain/r2.dev, o bucket
+			// fica privado e o Worker decide os headers de cache.
+			"binding": "UPLOADS",
+			"bucket_name": "flip-uploads"
+		}
+	]
 }

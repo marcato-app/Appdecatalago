@@ -11,13 +11,14 @@ import { normalizeWhatsAppNumber } from "@/lib/whatsapp";
 import { isValidCnpj } from "@/lib/cnpj";
 import { findBusinessCategory } from "@/lib/business-categories";
 import { buildThemeOverride } from "@/lib/theme-presets";
+import { imageRefSchema } from "@/lib/image-ref";
 
 const LOJA_PATH = "/dashboard/loja";
 
 const updateStoreSchema = z.object({
   name: z.string().trim().min(2, "Informe o nome da loja."),
-  logoUrl: z.string().trim().url("URL da foto/logo inválida.").optional(),
-  coverImageUrl: z.string().trim().url("URL da foto de capa inválida.").optional(),
+  logoUrl: imageRefSchema.optional(),
+  coverImageUrl: imageRefSchema.optional(),
   tagline: z.string().trim().optional(),
   bio: z.string().trim().optional(),
   whatsappNumber: z.string().trim().min(10, "Informe um número de WhatsApp válido com DDD."),
