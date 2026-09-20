@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { db } from "@/db/client";
@@ -9,7 +10,13 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 // Supabase auth user. Every dashboard page/action only ever calls
 // getCurrentUser()/requireUser(), so this is the one place that knows about
 // Supabase specifically.
-export async function getCurrentUser() {
+//
+// Wrapped in cache() — a layout and the page it wraps (or several
+// components in the same tree) commonly each call requireUser() on their
+// own; without this every one of them repeats a Supabase Auth round-trip
+// plus a users-table lookup for what is, within one request, always the
+// same answer.
+export const getCurrentUser = cache(async () => {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user: authUser },
@@ -32,7 +39,7 @@ export async function getCurrentUser() {
     })
     .returning();
   return created;
-}
+});
 
 /** Redirects to login when there's no valid session. Use at the top of every
  * dashboard page/server action — proxy.ts is a first line of defense, not

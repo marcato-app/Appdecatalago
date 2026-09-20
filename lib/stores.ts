@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { db } from "@/db/client";
@@ -6,9 +7,13 @@ import { requireUser } from "@/lib/auth/session";
 
 // Phase 1 assumes one store per lojista (schema supports more; the UI just
 // doesn't expose it yet — see ARCHITECTURE.md "Fase 1").
-export async function getStoreByOwnerId(ownerId: string) {
+//
+// Wrapped in cache() for the same reason as getCurrentUser() — the
+// dashboard's shell layout and the page it wraps both need "the current
+// user's store", and without this each one re-queries it.
+export const getStoreByOwnerId = cache(async (ownerId: string) => {
   return (await db.query.stores.findFirst({ where: eq(stores.ownerId, ownerId) })) ?? null;
-}
+});
 
 export async function getStoreBySlug(slug: string) {
   return (await db.query.stores.findFirst({ where: eq(stores.slug, slug) })) ?? null;
