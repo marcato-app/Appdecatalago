@@ -1,45 +1,23 @@
 import { redirect } from "next/navigation";
 import { asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db/client";
-import { categories, iphoneCatalogModels, iphoneCatalogVariants, products, productVariants, templates } from "@/db/schema";
+import { categories, products, productVariants, templates } from "@/db/schema";
 import { requireOwnedStore } from "@/lib/stores";
 import { getTemplateManifest } from "@/templates/registry";
 import { AddCategoryForm } from "@/components/dashboard/AddCategoryForm";
 import { AddProductInline } from "@/components/dashboard/AddProductInline";
 import { ProductItem } from "@/components/dashboard/ProductItem";
 import { AddIphoneProductInline, IphoneProductRow } from "@/components/dashboard/IphoneProductRow";
-import type { CatalogModelOption } from "@/components/dashboard/IphoneProductForm";
 import { IPHONE_CONDITION_LABELS } from "@/lib/iphone-models";
 import { deleteCategoryAction, moveCategoryAction } from "./actions";
 import type { CategoryOption } from "@/components/dashboard/ProductForm";
 
-async function getCatalogModelOptions(): Promise<CatalogModelOption[]> {
-  const [models, variants] = await Promise.all([
-    db.select().from(iphoneCatalogModels).orderBy(asc(iphoneCatalogModels.sortOrder)),
-    db.select().from(iphoneCatalogVariants).orderBy(asc(iphoneCatalogVariants.sortOrder)),
-  ]);
-
-  const variantsByModel = new Map<string, typeof variants>();
-  for (const variant of variants) {
-    const list = variantsByModel.get(variant.modelId) ?? [];
-    list.push(variant);
-    variantsByModel.set(variant.modelId, list);
-  }
-
-  return models.map((model) => ({
-    id: model.id,
-    name: model.name,
-    description: model.description,
-    specsText: model.specsText,
-    variants: (variantsByModel.get(model.id) ?? []).map((v) => ({ color: v.color, storageLabel: v.storageLabel })),
-  }));
-}
-
 async function IphoneProdutosPage({ storeId }: { storeId: string }) {
-  const [productRows, catalogModels] = await Promise.all([
-    db.select().from(products).where(eq(products.storeId, storeId)).orderBy(asc(products.sortOrder)),
-    getCatalogModelOptions(),
-  ]);
+  const productRows = await db
+    .select()
+    .from(products)
+    .where(eq(products.storeId, storeId))
+    .orderBy(asc(products.sortOrder));
 
   const variantRows =
     productRows.length === 0
@@ -109,14 +87,14 @@ async function IphoneProdutosPage({ storeId }: { storeId: string }) {
                 {group.label} · {groupItems.length}
               </h2>
               {groupItems.map((item) => (
-                <IphoneProductRow key={item.id} product={item} catalogModels={catalogModels} />
+                <IphoneProductRow key={item.id} product={item} />
               ))}
             </div>
           );
         })
       )}
 
-      <AddIphoneProductInline catalogModels={catalogModels} />
+      <AddIphoneProductInline />
     </div>
   );
 }

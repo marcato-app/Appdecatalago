@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import type { FormState } from "@/app/dashboard/loja/produtos/iphone-actions";
+import { useActionState, useEffect, useState } from "react";
+import { getIphoneCatalogModelsAction, type FormState } from "@/app/dashboard/loja/produtos/iphone-actions";
 import { showToast } from "@/lib/toast";
 import {
   IPHONE_COLOR_OPTIONS,
@@ -57,15 +57,27 @@ export function IphoneProductForm({
   defaultValues,
   submitLabel,
   onDone,
-  catalogModels,
 }: {
   action: (prevState: FormState, formData: FormData) => Promise<FormState>;
   productId?: string;
   defaultValues?: IphoneProductDefaults;
   submitLabel: string;
   onDone?: () => void;
-  catalogModels?: CatalogModelOption[];
 }) {
+  // Fetched on demand instead of passed down as a prop from the server page
+  // — this form only mounts when "Cadastrar"/"editar" is actually clicked,
+  // so the ~30-model reference catalog no longer loads on every visit to
+  // the produtos page, only when someone opens a form.
+  const [catalogModels, setCatalogModels] = useState<CatalogModelOption[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    getIphoneCatalogModelsAction().then((models) => {
+      if (!cancelled) setCatalogModels(models);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [state, formAction, isPending] = useActionState(async (prevState: FormState, formData: FormData) => {
     const result = await action(prevState, formData);
     if (result.error) {
@@ -112,6 +124,9 @@ export function IphoneProductForm({
         ? model.variants.map((v) => ({ key: crypto.randomUUID(), color: v.color, storageLabel: v.storageLabel, price: "", imageUrls: [] }))
         : [emptyVariant()],
     );
+    showToast(
+      `${model.variants.length} variações adicionadas — apague (×) as que você não tem e preencha o preço das que ficarem.`,
+    );
   }
 
   const variantsJson = JSON.stringify(
@@ -126,9 +141,11 @@ export function IphoneProductForm({
         <input key={item} type="hidden" name="includedItems" value={item} />
       ))}
 
-      {catalogModels && catalogModels.length > 0 ? (
-        <div className="flex flex-col gap-1 rounded-lg border border-violet-200 bg-violet-50/50 p-3 dark:border-violet-900 dark:bg-violet-950/20">
-          <label className="text-sm font-medium">Escolher do catálogo</label>
+      <div className="flex flex-col gap-1 rounded-lg border border-violet-200 bg-violet-50/50 p-3 dark:border-violet-900 dark:bg-violet-950/20">
+        <label className="text-sm font-medium">Escolher do catálogo</label>
+        {catalogModels === null ? (
+          <p className="text-sm text-zinc-500">Carregando modelos...</p>
+        ) : (
           <select
             defaultValue=""
             onChange={(event) => {
@@ -144,12 +161,12 @@ export function IphoneProductForm({
               </option>
             ))}
           </select>
-          <p className="text-xs text-zinc-500">
-            Preenche modelo, descrição/ficha técnica e todas as combinações de cor/armazenamento — você define o preço e
-            envia as fotos de cada uma.
-          </p>
-        </div>
-      ) : null}
+        )}
+        <p className="text-xs text-zinc-500">
+          Preenche modelo, descrição/ficha técnica e todas as combinações de cor/armazenamento — apague (×) as que você
+          não tem em estoque e preencha o preço das que ficarem.
+        </p>
+      </div>
 
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium">Modelo *</label>

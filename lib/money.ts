@@ -13,6 +13,11 @@ export function parseBRLToCents(input: string): number | null {
     normalized = normalized.replace(/\./g, "").replace(",", ".");
   }
 
+  // Number("") is 0 in JS, not NaN — without this, a price with no digits
+  // at all (e.g. someone typed only letters/symbols) would silently become
+  // R$ 0,00 instead of being rejected.
+  if (!/\d/.test(normalized)) return null;
+
   const value = Number(normalized);
   if (!Number.isFinite(value) || value < 0) return null;
   return Math.round(value * 100);

@@ -6,25 +6,55 @@
 // and each product owns a variants array (color/storage/price/photos)
 // saved as a whole on every submit, rather than the category+single-product
 // CRUD the generic catalog UI (ProductItem.tsx) uses.
-import { and, eq, isNull } from "drizzle-orm";
+import { asc, and, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db/client";
-import { products, productVariants } from "@/db/schema";
+import { iphoneCatalogModels, iphoneCatalogVariants, products, productVariants } from "@/db/schema";
 import { requireOwnedStore } from "@/lib/stores";
 import { parseBRLToCents } from "@/lib/money";
 import { imageRefSchema } from "@/lib/image-ref";
+import type { CatalogModelOption } from "@/components/dashboard/IphoneProductForm";
 
 const PRODUTOS_PATH = "/dashboard/loja/produtos";
+
+// Fetched on demand (when the "Escolher do catálogo" picker actually opens)
+// rather than eagerly on every /dashboard/loja/produtos page load — the
+// reference catalog is ~30 models / ~400 variant rows, unrelated to the
+// lojista's own product list, and was previously adding 2 extra queries to
+// every visit to the page even when nobody used the picker.
+export async function getIphoneCatalogModelsAction(): Promise<CatalogModelOption[]> {
+  await requireOwnedStore();
+
+  const [models, variants] = await Promise.all([
+    db.select().from(iphoneCatalogModels).orderBy(asc(iphoneCatalogModels.sortOrder)),
+    db.select().from(iphoneCatalogVariants).orderBy(asc(iphoneCatalogVariants.sortOrder)),
+  ]);
+
+  const variantsByModel = new Map<string, typeof variants>();
+  for (const variant of variants) {
+    const list = variantsByModel.get(variant.modelId) ?? [];
+    list.push(variant);
+    variantsByModel.set(variant.modelId, list);
+  }
+
+  return models.map((model) => ({
+    id: model.id,
+    name: model.name,
+    description: model.description,
+    specsText: model.specsText,
+    variants: (variantsByModel.get(model.id) ?? []).map((v) => ({ color: v.color, storageLabel: v.storageLabel })),
+  }));
+}
 
 export interface FormState {
   error?: string;
 }
 
 const variantInputSchema = z.object({
-  color: z.string().trim().min(1, "Informe a cor."),
+  color: z.string().trim(),
   storageLabel: z.string().trim().optional(),
-  price: z.string().trim().min(1, "Informe o preço."),
+  price: z.string().trim(),
   imageUrls: z.array(imageRefSchema).max(4).default([]),
 });
 
@@ -73,13 +103,18 @@ function parseIphoneProductForm(formData: FormData): { ok: true; data: ParsedIph
     return { ok: false, error: "Variações inválidas." };
   }
 
-  const variantsParsed = z.array(variantInputSchema).min(1, "Adicione pelo menos uma cor/armazenamento.").safeParse(rawVariants);
+  const variantsParsed = z.array(variantInputSchema).safeParse(rawVariants);
   if (!variantsParsed.success) {
-    return { ok: false, error: variantsParsed.error.issues[0]?.message ?? "Variações inválidas." };
+    return { ok: false, error: "Variações inválidas." };
   }
 
   const variants: ParsedIphoneProduct["variants"] = [];
   for (const variant of variantsParsed.data) {
+    // Linha sem cor e/ou sem preço (ex: combinação que o "Escolher do
+    // catálogo" preencheu mas o lojista não tinha em estoque e esqueceu de
+    // remover) — ignora em vez de travar o salvamento do produto inteiro.
+    if (!variant.color || !variant.price) continue;
+
     const priceCents = parseBRLToCents(variant.price);
     if (priceCents === null) {
       return { ok: false, error: `Preço inválido para a cor "${variant.color}". Use o formato 1500,00.` };
@@ -90,6 +125,10 @@ function parseIphoneProductForm(formData: FormData): { ok: true; data: ParsedIph
       priceCents,
       imageUrls: variant.imageUrls.slice(0, 4),
     });
+  }
+
+  if (variants.length === 0) {
+    return { ok: false, error: "Adicione pelo menos uma cor/armazenamento com preço preenchido." };
   }
 
   let batteryHealthPct: number | null = null;
