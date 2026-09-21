@@ -10,7 +10,7 @@ import { deleteProductAction, toggleProductActiveAction } from "@/app/dashboard/
 import { showToast } from "@/lib/toast";
 import { formatCentsToBRL } from "@/lib/money";
 import { IPHONE_CONDITION_LABELS } from "@/lib/iphone-models";
-import { IphoneProductForm, type IphoneProductDefaults } from "./IphoneProductForm";
+import { IphoneProductForm, type CatalogModelOption, type IphoneProductDefaults } from "./IphoneProductForm";
 
 export interface IphoneProductRowData {
   id: string;
@@ -43,7 +43,7 @@ function toDefaults(product: IphoneProductRowData): IphoneProductDefaults {
   };
 }
 
-export function IphoneProductRow({ product }: { product: IphoneProductRowData }) {
+export function IphoneProductRow({ product, catalogModels }: { product: IphoneProductRowData; catalogModels: CatalogModelOption[] }) {
   const [isEditing, setIsEditing] = useState(false);
 
   const cheapest = product.variants.reduce((min, v) => (v.priceCents < min.priceCents ? v : min), product.variants[0]);
@@ -61,6 +61,7 @@ export function IphoneProductRow({ product }: { product: IphoneProductRowData })
         defaultValues={toDefaults(product)}
         submitLabel="Salvar"
         onDone={() => setIsEditing(false)}
+        catalogModels={catalogModels}
       />
     );
   }
@@ -115,7 +116,7 @@ export function IphoneProductRow({ product }: { product: IphoneProductRowData })
   );
 }
 
-export function AddIphoneProductInline() {
+export function AddIphoneProductInline({ catalogModels }: { catalogModels: CatalogModelOption[] }) {
   const [isOpen, setIsOpen] = useState(false);
 
   if (!isOpen) {
@@ -135,6 +136,7 @@ export function AddIphoneProductInline() {
       action={addIphoneProductAction as (prevState: FormState, formData: FormData) => Promise<FormState>}
       submitLabel="Adicionar aparelho"
       onDone={() => setIsOpen(false)}
+      catalogModels={catalogModels}
     />
   );
 }

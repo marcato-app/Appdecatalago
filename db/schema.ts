@@ -195,6 +195,33 @@ export const productVariants = pgTable("product_variants", {
 });
 
 // ---------------------------------------------------------------------------
+// iPhone reference catalog — global, app-level data (NOT store-scoped, no
+// storeId/ownerId). Lets any lojista using the iphone-store template pick a
+// real model from a pre-filled list (name, marketing description, technical
+// specs, real color/storage combinations) instead of typing every field by
+// hand — they still set their own price and upload their own photos per
+// variant. Seeded via db/seed-iphone-catalog.ts, same pattern as `templates`.
+// ---------------------------------------------------------------------------
+
+export const iphoneCatalogModels = pgTable("iphone_catalog_models", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull().unique(),
+  description: text("description").notNull(),
+  specsText: text("specs_text").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+export const iphoneCatalogVariants = pgTable("iphone_catalog_variants", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  modelId: uuid("model_id")
+    .notNull()
+    .references(() => iphoneCatalogModels.id),
+  color: text("color").notNull(),
+  storageLabel: text("storage_label").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+// ---------------------------------------------------------------------------
 // Shared across both template families
 // ---------------------------------------------------------------------------
 

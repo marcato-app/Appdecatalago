@@ -40,6 +40,14 @@ function emptyVariant(): VariantDraft {
   return { key: crypto.randomUUID(), color: "", storageLabel: "", price: "", imageUrls: [] };
 }
 
+export interface CatalogModelOption {
+  id: string;
+  name: string;
+  description: string;
+  specsText: string;
+  variants: { color: string; storageLabel: string }[];
+}
+
 const inputClass =
   "rounded-lg border border-zinc-300 px-3 py-1.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/15 dark:border-zinc-700 dark:focus:border-violet-400 dark:bg-transparent";
 
@@ -49,12 +57,14 @@ export function IphoneProductForm({
   defaultValues,
   submitLabel,
   onDone,
+  catalogModels,
 }: {
   action: (prevState: FormState, formData: FormData) => Promise<FormState>;
   productId?: string;
   defaultValues?: IphoneProductDefaults;
   submitLabel: string;
   onDone?: () => void;
+  catalogModels?: CatalogModelOption[];
 }) {
   const [state, formAction, isPending] = useActionState(async (prevState: FormState, formData: FormData) => {
     const result = await action(prevState, formData);
@@ -92,6 +102,18 @@ export function IphoneProductForm({
     setCustomItem("");
   }
 
+  function applyCatalogModel(modelId: string) {
+    const model = catalogModels?.find((m) => m.id === modelId);
+    if (!model) return;
+    setName(model.name);
+    setDescription([model.description, model.specsText].filter(Boolean).join("\n\n"));
+    setVariants(
+      model.variants.length > 0
+        ? model.variants.map((v) => ({ key: crypto.randomUUID(), color: v.color, storageLabel: v.storageLabel, price: "", imageUrls: [] }))
+        : [emptyVariant()],
+    );
+  }
+
   const variantsJson = JSON.stringify(
     variants.map((v) => ({ color: v.color, storageLabel: v.storageLabel, price: v.price, imageUrls: v.imageUrls })),
   );
@@ -103,6 +125,31 @@ export function IphoneProductForm({
       {includedItems.map((item) => (
         <input key={item} type="hidden" name="includedItems" value={item} />
       ))}
+
+      {catalogModels && catalogModels.length > 0 ? (
+        <div className="flex flex-col gap-1 rounded-lg border border-violet-200 bg-violet-50/50 p-3 dark:border-violet-900 dark:bg-violet-950/20">
+          <label className="text-sm font-medium">Escolher do catálogo</label>
+          <select
+            defaultValue=""
+            onChange={(event) => {
+              if (event.target.value) applyCatalogModel(event.target.value);
+              event.target.value = "";
+            }}
+            className={inputClass}
+          >
+            <option value="">Selecionar modelo (preenche nome, descrição e variações)...</option>
+            {catalogModels.map((model) => (
+              <option key={model.id} value={model.id}>
+                {model.name}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-zinc-500">
+            Preenche modelo, descrição/ficha técnica e todas as combinações de cor/armazenamento — você define o preço e
+            envia as fotos de cada uma.
+          </p>
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium">Modelo *</label>

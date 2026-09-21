@@ -1,0 +1,363 @@
+// Reference data for the global iPhone catalog (iphone_catalog_models /
+// iphone_catalog_variants) — seeded by db/seed-iphone-catalog.ts. Covers the
+// generations a used/seminovo reseller realistically stocks (iPhone 11
+// through the current 17/Air lineup). Descriptions and specs are based on
+// Apple's own published specs; exact color names for the most recent
+// generations (17 series, Air, 16e) are worth double-checking against
+// apple.com since Apple renames finishes every year and this was written
+// close to those launches.
+//
+// storageOptions lists every capacity Apple actually sold for that model —
+// a lojista importing a model from the catalog gets one variant row per
+// capacity (times however many colors they pick), price and photos left
+// blank for them to fill in.
+
+export interface IphoneCatalogModelData {
+  name: string;
+  description: string;
+  specsText: string;
+  colors: string[];
+  storageOptions: string[];
+}
+
+export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
+  {
+    name: "iPhone 17 Pro Max",
+    description: "O topo de linha da Apple: desempenho máximo, câmeras profissionais e autonomia para o dia inteiro.",
+    specsText: [
+      "Chip A19 Pro",
+      "Tela Super Retina XDR ProMotion de 6,9\"",
+      "Câmera tripla de 48MP (principal, ultra grande angular e telefoto)",
+      "Câmera frontal com Face ID",
+      "Corpo em alumínio unibody",
+      "Conector USB-C, 5G, Wi-Fi 7",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Prateado", "Azul Profundo", "Laranja Cósmico"],
+    storageOptions: ["256GB", "512GB", "1TB", "2TB"],
+  },
+  {
+    name: "iPhone 17 Pro",
+    description: "Toda a linha Pro em um tamanho mais compacto — câmeras profissionais e desempenho de ponta.",
+    specsText: [
+      "Chip A19 Pro",
+      "Tela Super Retina XDR ProMotion de 6,3\"",
+      "Câmera tripla de 48MP (principal, ultra grande angular e telefoto)",
+      "Câmera frontal com Face ID",
+      "Corpo em alumínio unibody",
+      "Conector USB-C, 5G, Wi-Fi 7",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Prateado", "Azul Profundo", "Laranja Cósmico"],
+    storageOptions: ["256GB", "512GB", "1TB"],
+  },
+  {
+    name: "iPhone 17",
+    description: "Equilíbrio perfeito entre tamanho, câmera e desempenho pra quem quer o iPhone mais atual sem pagar pelo Pro.",
+    specsText: [
+      "Chip A19",
+      "Tela Super Retina XDR de 6,3\"",
+      "Câmera dupla de 48MP",
+      "Câmera frontal com Face ID",
+      "Conector USB-C, 5G, Wi-Fi 7",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Preto", "Branco", "Névoa Azul", "Sálvia", "Lavanda"],
+    storageOptions: ["256GB", "512GB"],
+  },
+  {
+    name: "iPhone Air",
+    description: "O iPhone mais fino já feito pela Apple, com bateria e câmera de topo de linha em um corpo ultraleve.",
+    specsText: [
+      "Chip A19",
+      "Design ultrafino em titânio",
+      "Tela Super Retina XDR ProMotion de 6,5\"",
+      "Câmera única de 48MP (Fusion)",
+      "Apenas eSIM (sem bandeja de chip físico)",
+      "Conector USB-C, 5G, Wi-Fi 7",
+    ].join("\n"),
+    colors: ["Preto Sideral", "Branco Nuvem", "Dourado Claro", "Azul Céu"],
+    storageOptions: ["256GB", "512GB", "1TB"],
+  },
+  {
+    name: "iPhone 16 Pro Max",
+    description: "Câmeras profissionais, tela grande e o Botão de Controle de Câmera — feito pra quem exige o máximo.",
+    specsText: [
+      "Chip A18 Pro",
+      "Tela Super Retina XDR ProMotion de 6,9\"",
+      "Câmera tripla de 48MP",
+      "Botão de Controle de Câmera",
+      "Corpo em titânio",
+      "Conector USB-C, 5G, Wi-Fi 7",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Titânio Preto", "Titânio Branco", "Titânio Natural", "Titânio Deserto"],
+    storageOptions: ["256GB", "512GB", "1TB"],
+  },
+  {
+    name: "iPhone 16 Pro",
+    description: "Toda a experiência Pro em titânio, num tamanho que cabe melhor na mão.",
+    specsText: [
+      "Chip A18 Pro",
+      "Tela Super Retina XDR ProMotion de 6,3\"",
+      "Câmera tripla de 48MP",
+      "Botão de Controle de Câmera",
+      "Corpo em titânio",
+      "Conector USB-C, 5G, Wi-Fi 7",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Titânio Preto", "Titânio Branco", "Titânio Natural", "Titânio Deserto"],
+    storageOptions: ["128GB", "256GB", "512GB", "1TB"],
+  },
+  {
+    name: "iPhone 16 Plus",
+    description: "Tela grande, ótima câmera e bateria que dura o dia inteiro — o queridinho de quem curte tela grande.",
+    specsText: [
+      "Chip A18",
+      "Tela Super Retina XDR de 6,7\"",
+      "Câmera dupla de 48MP",
+      "Botão de Controle de Câmera",
+      "Conector USB-C, 5G, Wi-Fi 7",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Preto", "Branco", "Rosa", "Verde-água", "Ultramarino"],
+    storageOptions: ["128GB", "256GB", "512GB"],
+  },
+  {
+    name: "iPhone 16",
+    description: "O iPhone mais equilibrado da linha atual — câmera excelente, ótimo desempenho e tamanho compacto.",
+    specsText: [
+      "Chip A18",
+      "Tela Super Retina XDR de 6,1\"",
+      "Câmera dupla de 48MP",
+      "Botão de Controle de Câmera",
+      "Conector USB-C, 5G, Wi-Fi 7",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Preto", "Branco", "Rosa", "Verde-água", "Ultramarino"],
+    storageOptions: ["128GB", "256GB", "512GB"],
+  },
+  {
+    name: "iPhone 16e",
+    description: "A porta de entrada mais moderna pra linha iPhone — desempenho atual por um preço mais acessível.",
+    specsText: [
+      "Chip A18",
+      "Tela Super Retina XDR de 6,1\" com Dynamic Island",
+      "Câmera única de 48MP",
+      "Conector USB-C, 5G",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Preto", "Branco"],
+    storageOptions: ["128GB", "256GB", "512GB"],
+  },
+  {
+    name: "iPhone 15 Pro Max",
+    description: "Titânio, zoom óptico estendido e USB-C — a geração que trouxe a linha Pro pra um novo patamar.",
+    specsText: [
+      "Chip A17 Pro",
+      "Tela Super Retina XDR ProMotion de 6,7\"",
+      "Câmera tripla de 48MP com zoom óptico estendido",
+      "Corpo em titânio",
+      "Conector USB-C, 5G",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Titânio Natural", "Titânio Azul", "Titânio Branco", "Titânio Preto"],
+    storageOptions: ["256GB", "512GB", "1TB"],
+  },
+  {
+    name: "iPhone 15 Pro",
+    description: "Titânio e câmeras profissionais num tamanho mais compacto.",
+    specsText: [
+      "Chip A17 Pro",
+      "Tela Super Retina XDR ProMotion de 6,1\"",
+      "Câmera tripla de 48MP",
+      "Corpo em titânio",
+      "Conector USB-C, 5G",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Titânio Natural", "Titânio Azul", "Titânio Branco", "Titânio Preto"],
+    storageOptions: ["128GB", "256GB", "512GB", "1TB"],
+  },
+  {
+    name: "iPhone 15 Plus",
+    description: "Dynamic Island, ótima câmera e tela grande — com o conforto do USB-C.",
+    specsText: [
+      "Chip A16",
+      "Tela Super Retina XDR de 6,7\" com Dynamic Island",
+      "Câmera dupla de 48MP",
+      "Conector USB-C, 5G",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Preto", "Azul", "Verde", "Amarelo", "Rosa"],
+    storageOptions: ["128GB", "256GB", "512GB"],
+  },
+  {
+    name: "iPhone 15",
+    description: "Dynamic Island, ótima câmera e o conforto do USB-C — um dos mais procurados no seminovo.",
+    specsText: [
+      "Chip A16",
+      "Tela Super Retina XDR de 6,1\" com Dynamic Island",
+      "Câmera dupla de 48MP",
+      "Conector USB-C, 5G",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Preto", "Azul", "Verde", "Amarelo", "Rosa"],
+    storageOptions: ["128GB", "256GB", "512GB"],
+  },
+  {
+    name: "iPhone 14 Pro Max",
+    description: "A geração que estreou a Dynamic Island, com câmeras profissionais e tela enorme.",
+    specsText: [
+      "Chip A16",
+      "Tela Super Retina XDR ProMotion de 6,7\" com Dynamic Island",
+      "Câmera tripla de 48MP",
+      "Conector Lightning, 5G",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Roxo-profundo", "Prateado", "Dourado", "Preto-espacial"],
+    storageOptions: ["128GB", "256GB", "512GB", "1TB"],
+  },
+  {
+    name: "iPhone 14 Pro",
+    description: "Dynamic Island e câmeras profissionais num tamanho mais compacto.",
+    specsText: [
+      "Chip A16",
+      "Tela Super Retina XDR ProMotion de 6,1\" com Dynamic Island",
+      "Câmera tripla de 48MP",
+      "Conector Lightning, 5G",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Roxo-profundo", "Prateado", "Dourado", "Preto-espacial"],
+    storageOptions: ["128GB", "256GB", "512GB", "1TB"],
+  },
+  {
+    name: "iPhone 14 Plus",
+    description: "A bateria mais longa da linha 14 em uma tela grande — ótimo custo-benefício em seminovo.",
+    specsText: [
+      "Chip A15",
+      "Tela Super Retina XDR de 6,7\"",
+      "Câmera dupla de 12MP",
+      "Conector Lightning, 5G",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Azul", "Roxo", "Meia-noite", "Estelar", "(PRODUCT)RED"],
+    storageOptions: ["128GB", "256GB", "512GB"],
+  },
+  {
+    name: "iPhone 14",
+    description: "Câmera ótima e desempenho confiável num tamanho compacto — um clássico do seminovo.",
+    specsText: [
+      "Chip A15",
+      "Tela Super Retina XDR de 6,1\"",
+      "Câmera dupla de 12MP",
+      "Conector Lightning, 5G",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Azul", "Roxo", "Meia-noite", "Estelar", "(PRODUCT)RED"],
+    storageOptions: ["128GB", "256GB", "512GB"],
+  },
+  {
+    name: "iPhone 13 Pro Max",
+    description: "Tela ProMotion e câmeras profissionais num corpo grande — muito procurado até hoje.",
+    specsText: [
+      "Chip A15",
+      "Tela Super Retina XDR ProMotion de 6,7\"",
+      "Câmera tripla de 12MP",
+      "Conector Lightning, 5G",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Grafite", "Prateado", "Dourado", "Azul-serra"],
+    storageOptions: ["128GB", "256GB", "512GB", "1TB"],
+  },
+  {
+    name: "iPhone 13 Pro",
+    description: "Tela ProMotion e câmeras profissionais num tamanho mais compacto.",
+    specsText: [
+      "Chip A15",
+      "Tela Super Retina XDR ProMotion de 6,1\"",
+      "Câmera tripla de 12MP",
+      "Conector Lightning, 5G",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Grafite", "Prateado", "Dourado", "Azul-serra"],
+    storageOptions: ["128GB", "256GB", "512GB", "1TB"],
+  },
+  {
+    name: "iPhone 13",
+    description: "O queridinho do custo-benefício: câmera dupla ótima e bateria que dura o dia inteiro.",
+    specsText: [
+      "Chip A15",
+      "Tela Super Retina XDR de 6,1\"",
+      "Câmera dupla de 12MP",
+      "Conector Lightning, 5G",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Meia-noite", "Estelar", "Rosa", "Azul", "(PRODUCT)RED", "Verde"],
+    storageOptions: ["128GB", "256GB", "512GB"],
+  },
+  {
+    name: "iPhone 13 mini",
+    description: "Toda a potência do iPhone 13 num corpo compacto pra quem gosta de aparelho pequeno.",
+    specsText: [
+      "Chip A15",
+      "Tela Super Retina XDR de 5,4\"",
+      "Câmera dupla de 12MP",
+      "Conector Lightning, 5G",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Meia-noite", "Estelar", "Rosa", "Azul", "(PRODUCT)RED", "Verde"],
+    storageOptions: ["128GB", "256GB", "512GB"],
+  },
+  {
+    name: "iPhone SE (3ª geração)",
+    description: "Design clássico com Touch ID e desempenho atual — ótimo custo-benefício em corpo compacto.",
+    specsText: [
+      "Chip A15",
+      "Tela Retina HD de 4,7\" com Touch ID",
+      "Câmera única de 12MP",
+      "Conector Lightning, 5G",
+      "Resistência a água e poeira IP67",
+    ].join("\n"),
+    colors: ["Meia-noite", "Estelar", "(PRODUCT)RED"],
+    storageOptions: ["64GB", "128GB", "256GB"],
+  },
+  {
+    name: "iPhone 12",
+    description: "Design em bordas retas que virou marca registrada da Apple, com ótima câmera dupla.",
+    specsText: [
+      "Chip A14",
+      "Tela Super Retina XDR de 6,1\"",
+      "Câmera dupla de 12MP",
+      "Conector Lightning, 5G",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Preto", "Branco", "Verde", "Azul", "(PRODUCT)RED", "Roxo"],
+    storageOptions: ["64GB", "128GB", "256GB"],
+  },
+  {
+    name: "iPhone 12 Pro Max",
+    description: "Câmera tripla com LiDAR e tela grande — uma opção robusta pra quem busca seminovo com qualidade.",
+    specsText: [
+      "Chip A14",
+      "Tela Super Retina XDR de 6,7\"",
+      "Câmera tripla de 12MP com sensor LiDAR",
+      "Conector Lightning, 5G",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Grafite", "Prateado", "Dourado", "Azul-Pacífico"],
+    storageOptions: ["128GB", "256GB", "512GB"],
+  },
+  {
+    name: "iPhone 11",
+    description: "Um dos seminovos mais vendidos do mercado — câmera dupla confiável e ótima bateria.",
+    specsText: [
+      "Chip A13",
+      "Tela Liquid Retina HD de 6,1\"",
+      "Câmera dupla de 12MP",
+      "Conector Lightning",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Preto", "Branco", "Verde", "Amarelo", "Roxo", "(PRODUCT)RED"],
+    storageOptions: ["64GB", "128GB", "256GB"],
+  },
+];
