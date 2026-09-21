@@ -287,7 +287,7 @@ export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
       "Conector Lightning, 5G",
       "Resistência a água e poeira IP68",
     ].join("\n"),
-    colors: ["Azul", "Roxo", "Meia-noite", "Estelar", "(PRODUCT)RED"],
+    colors: ["Azul", "Roxo", "Meia-noite", "Estelar", "PRODUCT RED"],
     storageOptions: ["128GB", "256GB", "512GB"],
   },
   {
@@ -300,7 +300,7 @@ export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
       "Conector Lightning, 5G",
       "Resistência a água e poeira IP68",
     ].join("\n"),
-    colors: ["Azul", "Roxo", "Meia-noite", "Estelar", "(PRODUCT)RED"],
+    colors: ["Azul", "Roxo", "Meia-noite", "Estelar", "PRODUCT RED"],
     storageOptions: ["128GB", "256GB", "512GB"],
   },
   {
@@ -339,7 +339,7 @@ export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
       "Conector Lightning, 5G",
       "Resistência a água e poeira IP68",
     ].join("\n"),
-    colors: ["Meia-noite", "Estelar", "Rosa", "Azul", "(PRODUCT)RED", "Verde"],
+    colors: ["Meia-noite", "Estelar", "Rosa", "Azul", "PRODUCT RED", "Verde"],
     storageOptions: ["128GB", "256GB", "512GB"],
   },
   {
@@ -352,7 +352,7 @@ export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
       "Conector Lightning, 5G",
       "Resistência a água e poeira IP68",
     ].join("\n"),
-    colors: ["Meia-noite", "Estelar", "Rosa", "Azul", "(PRODUCT)RED", "Verde"],
+    colors: ["Meia-noite", "Estelar", "Rosa", "Azul", "PRODUCT RED", "Verde"],
     storageOptions: ["128GB", "256GB", "512GB"],
   },
   {
@@ -365,7 +365,7 @@ export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
       "Conector Lightning, 5G",
       "Resistência a água e poeira IP67",
     ].join("\n"),
-    colors: ["Meia-noite", "Estelar", "(PRODUCT)RED"],
+    colors: ["Meia-noite", "Estelar", "PRODUCT RED"],
     storageOptions: ["64GB", "128GB", "256GB"],
   },
   {
@@ -378,7 +378,7 @@ export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
       "Conector Lightning, 5G",
       "Resistência a água e poeira IP68",
     ].join("\n"),
-    colors: ["Preto", "Branco", "Verde", "Azul", "(PRODUCT)RED", "Roxo"],
+    colors: ["Preto", "Branco", "Verde", "Azul", "PRODUCT RED", "Roxo"],
     storageOptions: ["64GB", "128GB", "256GB"],
   },
   {
@@ -404,7 +404,7 @@ export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
       "Conector Lightning",
       "Resistência a água e poeira IP68",
     ].join("\n"),
-    colors: ["Preto", "Branco", "Verde", "Amarelo", "Roxo", "(PRODUCT)RED"],
+    colors: ["Preto", "Branco", "Verde", "Amarelo", "Roxo", "PRODUCT RED"],
     storageOptions: ["64GB", "128GB", "256GB"],
   },
 ];
