@@ -22,6 +22,53 @@ export interface IphoneCatalogModelData {
 
 export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
   {
+    name: "iPhone Duo",
+    description: "O primeiro iPhone dobrável da Apple: tela de 7,6\" ao abrir, corpo em titânio e Touch ID no lugar do Face ID.",
+    specsText: [
+      "Chip A20 Pro",
+      "Design dobrável em titânio (formato livro)",
+      "Tela externa de 5,4\" e tela interna dobrável de 7,6\"",
+      "Câmera dupla de 48MP (principal e ultra grande angular)",
+      "Touch ID (sem Face ID)",
+      "Sistema de bateria dupla — até 24h de uso misto",
+      "Conector USB-C, 5G, Wi-Fi 7",
+    ].join("\n"),
+    colors: ["Branco Estelar", "Céu Noturno"],
+    storageOptions: ["256GB", "512GB", "1TB", "2TB"],
+  },
+  {
+    name: "iPhone 18 Pro Max",
+    description: "O novo topo de linha da Apple: câmera com abertura variável e a maior autonomia de bateria já vista num iPhone.",
+    specsText: [
+      "Chip A20 Pro",
+      "Tela de 6,9\"",
+      "Câmera Pro Fusion de 48MP com abertura variável",
+      "Dynamic Island",
+      "Ceramic Shield 2",
+      "Bateria: até 45h de reprodução de vídeo",
+      "Conector USB-C, 5G, Wi-Fi 7",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Preto", "Prateado", "Glacial", "Bordô"],
+    storageOptions: ["256GB", "512GB", "1TB", "2TB"],
+  },
+  {
+    name: "iPhone 18 Pro",
+    description: "Toda a nova geração Pro — câmera com abertura variável e chip A20 Pro — num tamanho mais compacto.",
+    specsText: [
+      "Chip A20 Pro",
+      "Tela de 6,3\"",
+      "Câmera Pro Fusion de 48MP com abertura variável",
+      "Dynamic Island",
+      "Ceramic Shield 2",
+      "Bateria: até 36h de reprodução de vídeo",
+      "Conector USB-C, 5G, Wi-Fi 7",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Preto", "Prateado", "Glacial", "Bordô"],
+    storageOptions: ["256GB", "512GB", "1TB", "2TB"],
+  },
+  {
     name: "iPhone 17 Pro Max",
     description: "O topo de linha da Apple: desempenho máximo, câmeras profissionais e autonomia para o dia inteiro.",
     specsText: [

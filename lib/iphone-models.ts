@@ -4,6 +4,9 @@
 // the lojista picks or types, so a model Apple releases after this list was
 // written still works (input has a free-text fallback, see IphoneProductForm).
 export const IPHONE_MODELS: string[] = [
+  "iPhone Duo",
+  "iPhone 18 Pro Max",
+  "iPhone 18 Pro",
   "iPhone 17 Pro Max",
   "iPhone 17 Pro",
   "iPhone 17",

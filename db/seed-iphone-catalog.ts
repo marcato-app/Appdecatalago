@@ -2,10 +2,23 @@
 // into iphone_catalog_models / iphone_catalog_variants. Run after every
 // migration that touches those tables, same as `npm run db:seed`:
 //   npx tsx db/seed-iphone-catalog.ts
+//
+// Uses its own single connection instead of the shared `db` from ./client —
+// that one wraps connection creation in React's cache(), which only
+// memoizes inside a render pass. In a plain script every call would open a
+// brand new Postgres connection and never close it, exhausting
+// max_connections well before this many models are done seeding.
 import { eq } from "drizzle-orm";
-import { db } from "./client";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import * as schema from "./schema";
 import { iphoneCatalogModels, iphoneCatalogVariants } from "./schema";
 import { IPHONE_CATALOG_DATA } from "./iphone-catalog-data";
+
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) throw new Error("DATABASE_URL is not set.");
+const queryClient = postgres(connectionString, { prepare: false, max: 1 });
+const db = drizzle(queryClient, { schema });
 
 async function main() {
   for (let i = 0; i < IPHONE_CATALOG_DATA.length; i++) {
@@ -42,6 +55,7 @@ async function main() {
   }
 
   console.log("iphone catalog seed done.");
+  await queryClient.end();
   process.exit(0);
 }
 
