@@ -1,13 +1,103 @@
 import { redirect } from "next/navigation";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db/client";
-import { categories, products } from "@/db/schema";
+import { categories, products, productVariants, templates } from "@/db/schema";
 import { requireOwnedStore } from "@/lib/stores";
+import { getTemplateManifest } from "@/templates/registry";
 import { AddCategoryForm } from "@/components/dashboard/AddCategoryForm";
 import { AddProductInline } from "@/components/dashboard/AddProductInline";
 import { ProductItem } from "@/components/dashboard/ProductItem";
+import { AddIphoneProductInline, IphoneProductRow } from "@/components/dashboard/IphoneProductRow";
+import { IPHONE_CONDITION_LABELS } from "@/lib/iphone-models";
 import { deleteCategoryAction, moveCategoryAction } from "./actions";
 import type { CategoryOption } from "@/components/dashboard/ProductForm";
+
+async function IphoneProdutosPage({ storeId }: { storeId: string }) {
+  const productRows = await db
+    .select()
+    .from(products)
+    .where(eq(products.storeId, storeId))
+    .orderBy(asc(products.sortOrder));
+
+  const variantRows =
+    productRows.length === 0
+      ? []
+      : await db
+          .select()
+          .from(productVariants)
+          .where(
+            inArray(
+              productVariants.productId,
+              productRows.map((p) => p.id),
+            ),
+          )
+          .orderBy(asc(productVariants.sortOrder));
+
+  const variantsByProduct = new Map<string, typeof variantRows>();
+  for (const variant of variantRows) {
+    const list = variantsByProduct.get(variant.productId) ?? [];
+    list.push(variant);
+    variantsByProduct.set(variant.productId, list);
+  }
+
+  const items = productRows.map((product) => ({
+    id: product.id,
+    name: product.name,
+    condition: product.condition,
+    grade: product.grade,
+    batteryHealthPct: product.batteryHealthPct,
+    description: product.description,
+    includedItems: (product.includedItems as string[] | null) ?? [],
+    isActive: product.isActive,
+    variants: (variantsByProduct.get(product.id) ?? []).map((v) => ({
+      id: v.id,
+      color: v.color,
+      storageLabel: v.storageLabel,
+      priceCents: v.priceCents,
+      imageUrls: (v.imageUrls as string[] | null) ?? [],
+    })),
+  }));
+
+  const groups: { condition: "lacrado" | "seminovo" | "cpo"; label: string }[] = [
+    { condition: "lacrado", label: IPHONE_CONDITION_LABELS.lacrado },
+    { condition: "seminovo", label: IPHONE_CONDITION_LABELS.seminovo },
+    { condition: "cpo", label: IPHONE_CONDITION_LABELS.cpo },
+  ];
+
+  return (
+    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-10">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Aparelhos</h1>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{items.length} aparelhos cadastrados.</p>
+        </div>
+      </div>
+
+      {items.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700">
+          Nenhum aparelho ainda. Cadastre o primeiro abaixo.
+        </p>
+      ) : (
+        groups.map((group) => {
+          const groupItems = items.filter((item) => item.condition === group.condition);
+          if (groupItems.length === 0) return null;
+          return (
+            <div key={group.condition} className="flex flex-col gap-2">
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                {group.label} · {groupItems.length}
+              </h2>
+              {groupItems.map((item) => (
+                <IphoneProductRow key={item.id} product={item} />
+              ))}
+            </div>
+          );
+        })
+      )}
+
+      <AddIphoneProductInline />
+    </div>
+  );
+}
 
 export default async function ProdutosPage() {
   const store = await requireOwnedStore();
@@ -15,10 +105,19 @@ export default async function ProdutosPage() {
     redirect("/dashboard/loja/conteudo");
   }
 
-  const [allCategories, allProducts] = await Promise.all([
+  const templateRow = await db.query.templates.findFirst({ where: eq(templates.id, store.templateId) });
+  const manifest = templateRow ? getTemplateManifest(templateRow.slug) : undefined;
+  if (manifest?.slug === "iphone-store") {
+    return <IphoneProdutosPage storeId={store.id} />;
+  }
+
+  const [allCategories, allProductRows] = await Promise.all([
     db.select().from(categories).where(eq(categories.storeId, store.id)).orderBy(asc(categories.sortOrder)),
     db.select().from(products).where(eq(products.storeId, store.id)).orderBy(asc(products.sortOrder)),
   ]);
+  // categoryId is only nullable for the iphone-store template's products
+  // (see db/schema.ts) — this branch never runs for that template.
+  const allProducts = allProductRows.filter((p): p is typeof p & { categoryId: string } => p.categoryId !== null);
 
   const sections = allCategories.filter((c) => !c.parentId);
   const groupsByParent = new Map<string, typeof allCategories>();

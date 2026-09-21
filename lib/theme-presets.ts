@@ -100,6 +100,22 @@ export const COLOR_PRESETS: ColorPreset[] = [
       line: "#33283f",
     },
   },
+  {
+    id: "branco-tech",
+    label: "Branco Tech",
+    colors: {
+      primary: "#ff6a1a",
+      primaryLight: "#ff8a4d",
+      primaryDim: "#d1550f",
+      background: "#ffffff",
+      backgroundSoft: "#f7f7f8",
+      card: "#ffffff",
+      rule: "#ececef",
+      ink: "#111113",
+      textDim: "#6b6b70",
+      line: "#e4e4e8",
+    },
+  },
 ];
 
 export interface FontPreset {

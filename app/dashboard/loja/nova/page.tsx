@@ -25,7 +25,18 @@ export default function NovaLojaPage() {
   const [businessCategory, setBusinessCategory] = useState(BUSINESS_CATEGORIES[0].id);
   const [templateSlug, setTemplateSlug] = useState(templateManifests[0].slug);
   const [colorPresetId, setColorPresetId] = useState(DEFAULT_COLOR_PRESET_ID);
+  const [colorPresetEditedManually, setColorPresetEditedManually] = useState(false);
   const [fontPresetId, setFontPresetId] = useState(DEFAULT_FONT_PRESET_ID);
+
+  function handleTemplateChange(slug: string) {
+    setTemplateSlug(slug);
+    // "Branco Tech" reads much closer to the iPhone reference than the dark
+    // presets every other template defaults to — auto-picked once, same as
+    // the slug auto-fill above, but never overrides an explicit choice.
+    if (!colorPresetEditedManually) {
+      setColorPresetId(slug === "iphone-store" ? "branco-tech" : DEFAULT_COLOR_PRESET_ID);
+    }
+  }
 
   const recommendedSlugs = useMemo(
     () => BUSINESS_CATEGORIES.find((c) => c.id === businessCategory)?.recommendedTemplateSlugs ?? [],
@@ -151,7 +162,7 @@ export default function NovaLojaPage() {
                           name="templateSlug"
                           value={template.slug}
                           checked={templateSlug === template.slug}
-                          onChange={() => setTemplateSlug(template.slug)}
+                          onChange={() => handleTemplateChange(template.slug)}
                         />
                         <span className="font-medium">{template.name}</span>
                       </span>
@@ -178,7 +189,10 @@ export default function NovaLojaPage() {
                     name="colorPresetId"
                     value={preset.id}
                     checked={colorPresetId === preset.id}
-                    onChange={() => setColorPresetId(preset.id)}
+                    onChange={() => {
+                      setColorPresetEditedManually(true);
+                      setColorPresetId(preset.id);
+                    }}
                     className="sr-only"
                   />
                   <span

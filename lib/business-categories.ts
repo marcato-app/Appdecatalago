@@ -47,7 +47,7 @@ export const BUSINESS_CATEGORIES: BusinessCategory[] = [
     id: "eletronicos_celulares",
     label: "Eletrônicos / Celulares",
     subMark: "Aparelhos & Acessórios",
-    recommendedTemplateSlugs: ["adega-mm"],
+    recommendedTemplateSlugs: ["iphone-store"],
   },
   {
     id: "barbearia_salao",

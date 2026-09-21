@@ -12,6 +12,7 @@ import { isValidCnpj } from "@/lib/cnpj";
 import { findBusinessCategory } from "@/lib/business-categories";
 import { buildThemeOverride } from "@/lib/theme-presets";
 import { imageRefSchema } from "@/lib/image-ref";
+import { storefrontSettingsSchema } from "@/lib/storefront-settings";
 
 const LOJA_PATH = "/dashboard/loja";
 
@@ -105,6 +106,72 @@ export async function updateStoreAction(_prevState: FormState, formData: FormDat
       updatedAt: new Date(),
     })
     .where(eq(stores.id, store.id));
+
+  revalidatePath(LOJA_PATH);
+  return { success: true };
+}
+
+// --- Vitrine settings (iphone-store template only, see lib/storefront-settings.ts) ---
+
+const storefrontSettingsFormSchema = z.object({
+  badgeVerified: z.string().optional(),
+  badgeRespondsFast: z.string().optional(),
+  badgeReadyDelivery: z.string().optional(),
+  installmentsEnabled: z.string().optional(),
+  maxInstallments: z.string().trim().min(1),
+  feeRatePct: z.string().trim().min(1),
+  displayMode: z.enum(["grande", "compacto"]),
+});
+
+export interface StorefrontSettingsFormState {
+  error?: string;
+  success?: boolean;
+}
+
+export async function updateStorefrontSettingsAction(
+  _prevState: StorefrontSettingsFormState,
+  formData: FormData,
+): Promise<StorefrontSettingsFormState> {
+  const store = await requireOwnedStore();
+
+  const parsed = storefrontSettingsFormSchema.safeParse({
+    badgeVerified: formData.get("badgeVerified") || undefined,
+    badgeRespondsFast: formData.get("badgeRespondsFast") || undefined,
+    badgeReadyDelivery: formData.get("badgeReadyDelivery") || undefined,
+    installmentsEnabled: formData.get("installmentsEnabled") || undefined,
+    maxInstallments: formData.get("maxInstallments"),
+    feeRatePct: formData.get("feeRatePct"),
+    displayMode: formData.get("displayMode"),
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
+  }
+
+  const maxInstallments = Number(parsed.data.maxInstallments);
+  const feeRatePct = Number(parsed.data.feeRatePct.replace(",", "."));
+  if (!Number.isFinite(maxInstallments) || maxInstallments < 1 || maxInstallments > 12) {
+    return { error: "Máximo de parcelas deve ser entre 1 e 12." };
+  }
+  if (!Number.isFinite(feeRatePct) || feeRatePct < 0 || feeRatePct > 20) {
+    return { error: "Taxa por parcela inválida." };
+  }
+
+  const settings = storefrontSettingsSchema.parse({
+    badges: {
+      verified: parsed.data.badgeVerified === "on",
+      respondsFast: parsed.data.badgeRespondsFast === "on",
+      readyDelivery: parsed.data.badgeReadyDelivery === "on",
+    },
+    installments: {
+      enabled: parsed.data.installmentsEnabled === "on",
+      maxInstallments,
+      feeRatePct,
+    },
+    displayMode: parsed.data.displayMode,
+  });
+
+  await db.update(stores).set({ storefrontSettings: settings, updatedAt: new Date() }).where(eq(stores.id, store.id));
 
   revalidatePath(LOJA_PATH);
   return { success: true };

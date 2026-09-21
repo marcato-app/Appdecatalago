@@ -44,6 +44,10 @@ export const blockTypeEnum = pgEnum("block_type", [
   "links",
 ]);
 
+// Only used by the iphone-store template's products (condição do aparelho).
+// Nullable/unused on every other catalog template.
+export const productConditionEnum = pgEnum("product_condition", ["lacrado", "seminovo", "cpo"]);
+
 // ---------------------------------------------------------------------------
 // Users
 // ---------------------------------------------------------------------------
@@ -118,6 +122,11 @@ export const stores = pgTable(
     addressLat: numeric("address_lat"),
     addressLng: numeric("address_lng"),
     businessHours: jsonb("business_hours").notNull().default([]),
+    // Vitrine display settings specific to templates that need them (e.g.
+    // iphone-store's trust badges/installments/grid density) — kept generic
+    // (not iphone-only columns) so another template can reuse the same slot
+    // later. Shape lives in lib/storefront-settings.ts, not enforced by the DB.
+    storefrontSettings: jsonb("storefront_settings").notNull().default({}),
     status: storeStatusEnum("status").notNull().default("draft"),
     publishedAt: timestamp("published_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -148,15 +157,40 @@ export const products = pgTable("products", {
   storeId: uuid("store_id")
     .notNull()
     .references(() => stores.id),
-  categoryId: uuid("category_id")
-    .notNull()
-    .references(() => categories.id),
+  // Nullable because the iphone-store template doesn't use sections/groups —
+  // its products (aparelhos) are grouped by `condition` instead.
+  categoryId: uuid("category_id").references(() => categories.id),
   name: text("name").notNull(),
   unitLabel: text("unit_label"),
+  // For iphone-store products this is denormalized as the lowest variant
+  // price (see productVariants below) — kept in sync on save so every other
+  // part of the app that already reads priceCents/imageUrl (sorting,
+  // listings) keeps working without knowing about variants.
   priceCents: integer("price_cents").notNull(),
   description: text("description"),
   imageUrl: text("image_url"),
   isActive: boolean("is_active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  // --- iphone-store-only fields (null on every other template's products) ---
+  condition: productConditionEnum("condition"),
+  grade: text("grade"), // A / AB / B — only meaningful when condition = 'seminovo'
+  batteryHealthPct: integer("battery_health_pct"),
+  includedItems: jsonb("included_items").notNull().default([]), // string[] — "Caixa", "Cabo"...
+});
+
+// Color/storage variants of a single iphone-store product ("iPhone 14"):
+// each combination has its own price and up to 4 photos. Only used by the
+// iphone-store template — every other catalog template's products have zero
+// variant rows and priceCents/imageUrl on the product itself are authoritative.
+export const productVariants = pgTable("product_variants", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  productId: uuid("product_id")
+    .notNull()
+    .references(() => products.id),
+  color: text("color").notNull(),
+  storageLabel: text("storage_label"), // "128GB", "1TB"...
+  priceCents: integer("price_cents").notNull(),
+  imageUrls: jsonb("image_urls").notNull().default([]), // string[], up to 4
   sortOrder: integer("sort_order").notNull().default(0),
 });
 

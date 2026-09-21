@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { asc, eq, ne, and } from "drizzle-orm";
+import { asc, eq, ne, and, inArray } from "drizzle-orm";
 import { db } from "@/db/client";
-import { categories, products, storeLinks, templates } from "@/db/schema";
+import { categories, products, productVariants, storeLinks, templates } from "@/db/schema";
 import { getStoreBySlug } from "@/lib/stores";
 import { resolveTheme } from "@/lib/theme";
 import { findBusinessCategory } from "@/lib/business-categories";
+import { resolveStorefrontSettings } from "@/lib/storefront-settings";
 import { getTemplateManifest } from "@/templates/registry";
 import type { TemplateTheme } from "@/templates/types";
 import { ThemeStyle } from "@/components/store/ThemeStyle";
@@ -16,6 +17,9 @@ import { LinkHub as AdegaLinkHub, type LinkHubExtraLink } from "@/templates/adeg
 import { Cardapio as AdegaCardapio } from "@/templates/adega-mm/Cardapio";
 import { Page as BarbeariaPage } from "@/templates/barbearia-tnt/Page";
 import { Page as ClinicaPage } from "@/templates/clinica/Page";
+import { Storefront as IphoneStorefront } from "@/templates/iphone-store/Storefront";
+import { ProductDetail as IphoneProductDetail } from "@/templates/iphone-store/ProductDetail";
+import type { IphoneProductDto } from "@/templates/iphone-store/types";
 import { getStoreBlocks, findBlock } from "@/lib/blocks";
 
 type Params = { slug: string; path?: string[] };
@@ -47,7 +51,12 @@ async function buildCardapioSections(storeId: string): Promise<CardapioSection[]
       .orderBy(asc(products.sortOrder)),
   ]);
 
-  const activeProducts = allProducts.filter((p) => p.isActive);
+  // categoryId is only nullable for the iphone-store template's products
+  // (see db/schema.ts) — this function is only ever called for the
+  // categories/products family, where every product has one.
+  const activeProducts = allProducts.filter(
+    (p): p is typeof p & { categoryId: string } => p.isActive && p.categoryId !== null,
+  );
   const productsByCategory = new Map<string, typeof activeProducts>();
   for (const product of activeProducts) {
     const list = productsByCategory.get(product.categoryId) ?? [];
@@ -87,6 +96,72 @@ async function buildCardapioSections(storeId: string): Promise<CardapioSection[]
       })),
     }))
     .filter((section) => section.products.length > 0 || section.groups.some((g) => g.products.length > 0));
+}
+
+function toIphoneProductDtos(
+  productRows: (typeof products.$inferSelect)[],
+  variantRows: (typeof productVariants.$inferSelect)[],
+): IphoneProductDto[] {
+  const variantsByProduct = new Map<string, typeof variantRows>();
+  for (const variant of variantRows) {
+    const list = variantsByProduct.get(variant.productId) ?? [];
+    list.push(variant);
+    variantsByProduct.set(variant.productId, list);
+  }
+
+  return productRows
+    .map((product) => ({
+      id: product.id,
+      name: product.name,
+      condition: product.condition,
+      grade: product.grade,
+      batteryHealthPct: product.batteryHealthPct,
+      description: product.description,
+      includedItems: (product.includedItems as string[] | null) ?? [],
+      variants: (variantsByProduct.get(product.id) ?? [])
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((v) => ({
+          id: v.id,
+          color: v.color,
+          storageLabel: v.storageLabel,
+          priceCents: v.priceCents,
+          imageUrls: (v.imageUrls as string[] | null) ?? [],
+        })),
+    }))
+    .filter((product) => product.variants.length > 0);
+}
+
+async function getIphoneStoreProducts(storeId: string): Promise<IphoneProductDto[]> {
+  const productRows = await db
+    .select()
+    .from(products)
+    .where(and(eq(products.storeId, storeId), eq(products.isActive, true)))
+    .orderBy(asc(products.sortOrder));
+
+  if (productRows.length === 0) return [];
+
+  const variantRows = await db
+    .select()
+    .from(productVariants)
+    .where(
+      inArray(
+        productVariants.productId,
+        productRows.map((p) => p.id),
+      ),
+    );
+
+  return toIphoneProductDtos(productRows, variantRows);
+}
+
+async function getIphoneStoreProduct(storeId: string, productId: string): Promise<IphoneProductDto | null> {
+  const product = await db.query.products.findFirst({
+    where: and(eq(products.id, productId), eq(products.storeId, storeId), eq(products.isActive, true)),
+  });
+  if (!product) return null;
+
+  const variantRows = await db.select().from(productVariants).where(eq(productVariants.productId, product.id));
+  const [dto] = toIphoneProductDtos([product], variantRows);
+  return dto ?? null;
 }
 
 const RENDERABLE_LINK_TYPES = ["website", "app_store", "play_store", "custom"] as const;
@@ -177,6 +252,41 @@ export default async function StorePage({ params }: { params: Promise<Params> })
             about={about[0] ?? null}
             reviews={findBlock(storeBlocks, "reviews")?.items ?? []}
           />
+        </>
+      );
+    }
+
+    notFound();
+  }
+
+  if (manifest.slug === "iphone-store") {
+    const storeInfo = {
+      slug: store.slug,
+      name: store.name,
+      tagline: store.tagline,
+      logoUrl: store.logoUrl,
+      instagramHandle: store.instagramHandle,
+      whatsappNumber: store.whatsappNumber,
+    };
+    const settings = resolveStorefrontSettings(store.storefrontSettings);
+
+    if (!segment) {
+      const iphoneProducts = await getIphoneStoreProducts(store.id);
+      return (
+        <>
+          <ThemeStyle theme={theme} />
+          <IphoneStorefront store={storeInfo} products={iphoneProducts} settings={settings} />
+        </>
+      );
+    }
+
+    if (segment === "produto" && path?.length === 2) {
+      const product = await getIphoneStoreProduct(store.id, path[1]);
+      if (!product) notFound();
+      return (
+        <>
+          <ThemeStyle theme={theme} />
+          <IphoneProductDetail store={storeInfo} product={product} settings={settings} />
         </>
       );
     }

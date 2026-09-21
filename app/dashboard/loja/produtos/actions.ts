@@ -253,12 +253,15 @@ export async function moveProductAction(formData: FormData): Promise<void> {
   const product = await db.query.products.findFirst({
     where: and(eq(products.id, productId), eq(products.storeId, store.id)),
   });
-  if (!product) return;
+  // categoryId is null for iphone-store products (that template has no
+  // move-up/down UI — see IphoneProductRow) — nothing to reorder against.
+  if (!product || !product.categoryId) return;
+  const categoryId = product.categoryId;
 
   const siblings = await db
     .select({ id: products.id, sortOrder: products.sortOrder })
     .from(products)
-    .where(and(eq(products.storeId, store.id), eq(products.categoryId, product.categoryId)))
+    .where(and(eq(products.storeId, store.id), eq(products.categoryId, categoryId)))
     .orderBy(products.sortOrder);
 
   const index = siblings.findIndex((s) => s.id === productId);

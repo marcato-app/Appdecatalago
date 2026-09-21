@@ -29,6 +29,13 @@
       "when": 1789910352636,
       "tag": "0003_same_stardust",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789954741660,
+      "tag": "0004_clammy_mephisto",
+      "breakpoints": true
     }
   ]
 }

@@ -1,20 +1,23 @@
 import Link from "next/link";
 import { eq, asc } from "drizzle-orm";
 import { db } from "@/db/client";
-import { storeLinks } from "@/db/schema";
+import { storeLinks, templates } from "@/db/schema";
 import { requireOwnedStore } from "@/lib/stores";
+import { getTemplateManifest } from "@/templates/registry";
+import { resolveStorefrontSettings } from "@/lib/storefront-settings";
 import { StoreEditForm } from "@/components/dashboard/StoreEditForm";
 import { StoreLinksManager } from "@/components/dashboard/StoreLinksManager";
+import { StorefrontSettingsForm } from "@/components/dashboard/StorefrontSettingsForm";
 import { togglePublishAction } from "./actions";
 
 export default async function LojaPage() {
   const store = await requireOwnedStore();
   const isPublished = store.status === "published";
-  const links = await db
-    .select()
-    .from(storeLinks)
-    .where(eq(storeLinks.storeId, store.id))
-    .orderBy(asc(storeLinks.sortOrder));
+  const [links, templateRow] = await Promise.all([
+    db.select().from(storeLinks).where(eq(storeLinks.storeId, store.id)).orderBy(asc(storeLinks.sortOrder)),
+    db.query.templates.findFirst({ where: eq(templates.id, store.templateId) }),
+  ]);
+  const isIphoneStore = templateRow ? getTemplateManifest(templateRow.slug)?.slug === "iphone-store" : false;
 
   return (
     <div className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-6 px-6 py-10">
@@ -84,6 +87,13 @@ export default async function LojaPage() {
       <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <StoreLinksManager links={links} />
       </div>
+
+      {isIphoneStore ? (
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Vitrine</h2>
+          <StorefrontSettingsForm settings={resolveStorefrontSettings(store.storefrontSettings)} />
+        </div>
+      ) : null}
     </div>
   );
 }
