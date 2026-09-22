@@ -47,18 +47,25 @@ export default async function LojaPage() {
           </form>
         </div>
 
+        {!isPublished ? (
+          <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+            Sua loja ainda está em rascunho — só você consegue abrir o link. Clique em{" "}
+            <strong className="font-semibold">Publicar</strong> quando quiser deixá-la no ar pros clientes.
+          </p>
+        ) : null}
+
         <div className="flex items-center justify-between gap-3 rounded-xl bg-zinc-50 px-4 py-3 dark:bg-zinc-950">
           <div className="min-w-0">
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Link público</p>
-            {isPublished ? (
-              <Link href={`/${store.slug}`} target="_blank" className="truncate font-medium text-violet-600 hover:underline dark:text-violet-400">
-                /{store.slug}
-              </Link>
-            ) : (
-              <p className="truncate font-medium text-zinc-400">
-                /{store.slug} <span className="text-xs">(publique pra ativar)</span>
-              </p>
-            )}
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              {isPublished ? "Link público" : "Link (prévia só pra você)"}
+            </p>
+            <Link
+              href={`/${store.slug}`}
+              target="_blank"
+              className="truncate font-medium text-violet-600 hover:underline dark:text-violet-400"
+            >
+              /{store.slug}
+            </Link>
           </div>
         </div>
 

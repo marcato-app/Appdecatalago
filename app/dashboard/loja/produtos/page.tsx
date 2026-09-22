@@ -74,9 +74,14 @@ async function IphoneProdutosPage({ storeId }: { storeId: string }) {
       </div>
 
       {items.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700">
-          Nenhum aparelho ainda. Cadastre o primeiro abaixo.
-        </p>
+        <div className="rounded-2xl border border-dashed border-zinc-300 p-6 text-center dark:border-zinc-700">
+          <p className="text-sm font-medium">Nenhum aparelho cadastrado ainda</p>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-zinc-500 dark:text-zinc-400">
+            Clique em <strong className="font-semibold">Cadastrar</strong> abaixo e use o{" "}
+            <strong className="font-semibold">&ldquo;Escolher do catálogo&rdquo;</strong> — ele preenche modelo,
+            descrição, ficha técnica e as cores/capacidades. Você só define o preço.
+          </p>
+        </div>
       ) : (
         groups.map((group) => {
           const groupItems = items.filter((item) => item.condition === group.condition);

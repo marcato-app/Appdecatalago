@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { asc, eq, ne, and, inArray } from "drizzle-orm";
 import { db } from "@/db/client";
-import { categories, products, productVariants, storeLinks, templates } from "@/db/schema";
-import { getStoreBySlug } from "@/lib/stores";
+import { categories, products, productVariants, storeLinks } from "@/db/schema";
+import { getStoreBySlugWithTemplate } from "@/lib/stores";
+import { getCurrentUser } from "@/lib/auth/session";
 import { resolveTheme } from "@/lib/theme";
 import { findBusinessCategory } from "@/lib/business-categories";
 import { resolveStorefrontSettings } from "@/lib/storefront-settings";
@@ -24,20 +26,31 @@ import { getStoreBlocks, findBlock } from "@/lib/blocks";
 
 type Params = { slug: string; path?: string[] };
 
-async function getPublishedStore(slug: string) {
-  const store = await getStoreBySlug(slug);
-  if (!store || store.status !== "published") return null;
-  return store;
+// Returns the store *and* its template slug together — both come from one
+// cached query, shared between generateMetadata() and the page render.
+//
+// A store still in rascunho is invisible to the public (404), but its own
+// lojista can open it to see how it looks before publishing — so the auth
+// check only runs on that miss path, never on a normal customer visit.
+async function getVisibleStore(slug: string) {
+  const row = await getStoreBySlugWithTemplate(slug);
+  if (!row) return null;
+  if (row.store.status === "published") return { ...row, isPreview: false };
+
+  const user = await getCurrentUser();
+  if (user && user.id === row.store.ownerId) return { ...row, isPreview: true };
+
+  return null;
 }
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
-  const store = await getPublishedStore(slug);
-  if (!store) return { title: "Loja não encontrada" };
+  const visible = await getVisibleStore(slug);
+  if (!visible) return { title: "Loja não encontrada" };
 
   return {
-    title: store.name,
-    description: store.tagline ?? store.bio ?? undefined,
+    title: visible.store.name,
+    description: visible.store.tagline ?? visible.store.bio ?? undefined,
   };
 }
 
@@ -186,14 +199,39 @@ function catalogMeta(sections: CardapioSection[]): string {
   return names.join(", ");
 }
 
+// Thin wrapper so the "rascunho" bar renders once for the owner's preview,
+// instead of being repeated in every one of the template branches below.
 export default async function StorePage({ params }: { params: Promise<Params> }) {
+  const { slug } = await params;
+  const visible = await getVisibleStore(slug);
+
+  return (
+    <>
+      {visible?.isPreview ? <DraftPreviewBar /> : null}
+      <StoreContent params={params} />
+    </>
+  );
+}
+
+function DraftPreviewBar() {
+  return (
+    <div className="sticky top-0 z-50 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 bg-amber-400 px-4 py-2 text-center text-sm font-medium text-amber-950">
+      <span>Prévia — sua loja está em rascunho e ninguém além de você consegue ver.</span>
+      <Link href="/dashboard/loja" className="underline underline-offset-2">
+        Publicar agora
+      </Link>
+    </div>
+  );
+}
+
+async function StoreContent({ params }: { params: Promise<Params> }) {
   const { slug, path } = await params;
 
-  const store = await getPublishedStore(slug);
-  if (!store) notFound();
+  const visible = await getVisibleStore(slug);
+  if (!visible) notFound();
 
-  const templateRow = await db.query.templates.findFirst({ where: eq(templates.id, store.templateId) });
-  const manifest = templateRow ? getTemplateManifest(templateRow.slug) : undefined;
+  const { store, templateSlug } = visible;
+  const manifest = templateSlug ? getTemplateManifest(templateSlug) : undefined;
   if (!manifest) notFound();
 
   const theme = resolveTheme(manifest.defaultTheme, store.theme) as TemplateTheme;

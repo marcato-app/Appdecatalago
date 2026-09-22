@@ -34,13 +34,13 @@ export default async function DashboardShellLayout({ children }: { children: Rea
           ) : null}
 
           <div className="flex items-center gap-3">
-            {store?.status === "published" ? (
+            {store ? (
               <Link
                 href={`/${store.slug}`}
                 target="_blank"
                 className="hidden text-sm font-medium text-zinc-500 hover:text-zinc-900 sm:block dark:text-zinc-400 dark:hover:text-zinc-100"
               >
-                Ver loja ↗
+                {store.status === "published" ? "Ver loja ↗" : "Ver prévia ↗"}
               </Link>
             ) : null}
             <LogoutButton />
