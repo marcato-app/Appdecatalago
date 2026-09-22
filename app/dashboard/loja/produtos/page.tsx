@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db/client";
-import { categories, products, productVariants, templates } from "@/db/schema";
-import { requireOwnedStore } from "@/lib/stores";
+import { categories, products, productVariants } from "@/db/schema";
+import { requireOwnedStoreWithTemplate } from "@/lib/stores";
 import { getTemplateManifest } from "@/templates/registry";
 import { AddCategoryForm } from "@/components/dashboard/AddCategoryForm";
 import { AddProductInline } from "@/components/dashboard/AddProductInline";
@@ -100,13 +100,12 @@ async function IphoneProdutosPage({ storeId }: { storeId: string }) {
 }
 
 export default async function ProdutosPage() {
-  const store = await requireOwnedStore();
+  const { store, templateSlug } = await requireOwnedStoreWithTemplate();
   if (store.businessType !== "catalog") {
     redirect("/dashboard/loja/conteudo");
   }
 
-  const templateRow = await db.query.templates.findFirst({ where: eq(templates.id, store.templateId) });
-  const manifest = templateRow ? getTemplateManifest(templateRow.slug) : undefined;
+  const manifest = templateSlug ? getTemplateManifest(templateSlug) : undefined;
   if (manifest?.slug === "iphone-store") {
     return <IphoneProdutosPage storeId={store.id} />;
   }

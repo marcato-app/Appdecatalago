@@ -1,16 +1,20 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth/session";
-import { getStoreByOwnerId } from "@/lib/stores";
+import { getStoreWithTemplateByOwnerId } from "@/lib/stores";
 import { LogoutButton } from "@/components/dashboard/LogoutButton";
 import { NavLink } from "@/components/dashboard/NavLink";
 import { ToastHost } from "@/components/dashboard/ToastHost";
 
 // Shared shell (logo, loja/produtos nav, "ver loja", sair) for every screen
 // under /dashboard/loja/** — including /nova, where there's no store yet,
-// so the nav pills are hidden until getStoreByOwnerId finds one.
+// so the nav pills are hidden until a store is found.
+//
+// Deliberately the same cached lookup the pages inside use, so the shell and
+// the page it wraps share one database round trip instead of each doing
+// their own.
 export default async function DashboardShellLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
-  const store = await getStoreByOwnerId(user.id);
+  const store = (await getStoreWithTemplateByOwnerId(user.id))?.store ?? null;
 
   return (
     <div className="flex flex-1 flex-col bg-zinc-50 dark:bg-zinc-950">

@@ -1,20 +1,16 @@
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
-import { db } from "@/db/client";
-import { templates } from "@/db/schema";
-import { requireOwnedStore } from "@/lib/stores";
+import { requireOwnedStoreWithTemplate } from "@/lib/stores";
 import { getStoreBlocks } from "@/lib/blocks";
 import { getTemplateManifest } from "@/templates/registry";
 import { BlockSection } from "@/components/dashboard/BlockSection";
 
 export default async function ConteudoPage() {
-  const store = await requireOwnedStore();
+  const { store, templateSlug } = await requireOwnedStoreWithTemplate();
   if (store.businessType !== "portfolio") {
     redirect("/dashboard/loja/produtos");
   }
 
-  const templateRow = await db.query.templates.findFirst({ where: eq(templates.id, store.templateId) });
-  const manifest = templateRow ? getTemplateManifest(templateRow.slug) : undefined;
+  const manifest = templateSlug ? getTemplateManifest(templateSlug) : undefined;
   const storeBlocks = await getStoreBlocks(store.id);
 
   return (

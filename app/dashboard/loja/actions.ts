@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db/client";
-import { stores, storeLinks } from "@/db/schema";
+import { stores, storeLinks, templates, blocks } from "@/db/schema";
 import { requireOwnedStore } from "@/lib/stores";
 import { normalizeWhatsAppNumber } from "@/lib/whatsapp";
 import { isValidCnpj } from "@/lib/cnpj";
@@ -13,6 +13,7 @@ import { findBusinessCategory } from "@/lib/business-categories";
 import { buildThemeOverride } from "@/lib/theme-presets";
 import { imageRefSchema } from "@/lib/image-ref";
 import { storefrontSettingsSchema } from "@/lib/storefront-settings";
+import { templateManifests } from "@/templates/registry";
 
 const LOJA_PATH = "/dashboard/loja";
 
@@ -108,6 +109,77 @@ export async function updateStoreAction(_prevState: FormState, formData: FormDat
     .where(eq(stores.id, store.id));
 
   revalidatePath(LOJA_PATH);
+  return { success: true };
+}
+
+// --- Trocar o modelo (template) da loja ---------------------------------
+// Antes só dava pra escolher o modelo no cadastro da loja, então quem criou
+// a loja antes de um modelo novo existir ficava preso no antigo (e sem ver
+// as telas do modelo novo no painel). Trocar o modelo muda também o
+// businessType, porque é ele que decide se a loja usa produtos/categorias
+// ou blocos de conteúdo.
+
+const changeTemplateSchema = z.object({
+  templateSlug: z.string().trim().min(1, "Escolha um modelo."),
+  applyDefaultTheme: z.string().optional(),
+});
+
+export async function changeStoreTemplateAction(
+  _prevState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const store = await requireOwnedStore();
+
+  const parsed = changeTemplateSchema.safeParse({
+    templateSlug: formData.get("templateSlug"),
+    applyDefaultTheme: formData.get("applyDefaultTheme") || undefined,
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
+  }
+
+  const manifest = templateManifests.find((m) => m.slug === parsed.data.templateSlug);
+  if (!manifest) {
+    return { error: "Modelo inválido." };
+  }
+
+  const template = await db.query.templates.findFirst({ where: eq(templates.slug, manifest.slug) });
+  if (!template) {
+    return { error: "Modelo não encontrado no banco. Rode o seed dos modelos." };
+  }
+
+  await db
+    .update(stores)
+    .set({
+      templateId: template.id,
+      businessType: manifest.businessType,
+      ...(parsed.data.applyDefaultTheme === "on" ? { theme: manifest.defaultTheme } : {}),
+      updatedAt: new Date(),
+    })
+    .where(eq(stores.id, store.id));
+
+  // Modelos da família "portfólio" renderizam blocos (equipe, galeria...) —
+  // garante uma linha por bloco do manifesto, sem duplicar os que já existem.
+  if (manifest.blocks && manifest.blocks.length > 0) {
+    const existing = await db.select({ type: blocks.type }).from(blocks).where(eq(blocks.storeId, store.id));
+    const existingTypes = new Set(existing.map((b) => b.type));
+    const missing = manifest.blocks.filter((block) => !existingTypes.has(block.type));
+    if (missing.length > 0) {
+      await db.insert(blocks).values(
+        missing.map((block, index) => ({
+          storeId: store.id,
+          type: block.type,
+          position: existingTypes.size + index,
+          visible: true,
+          settings: {},
+        })),
+      );
+    }
+  }
+
+  revalidatePath(LOJA_PATH);
+  revalidatePath("/dashboard/loja/produtos");
+  revalidatePath("/dashboard/loja/conteudo");
   return { success: true };
 }
 

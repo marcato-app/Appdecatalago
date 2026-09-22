@@ -8,6 +8,13 @@ import { createServerClient } from "@supabase/ssr";
 // SSR guide) and redirects based on auth state. Every dashboard
 // page/server action re-checks with requireUser() against Supabase too —
 // this is a first line of defense, not the only one.
+//
+// Uses getClaims() instead of getUser(): getUser() is always a round trip to
+// Supabase's auth server, and this runs before *every* dashboard request —
+// so each click paid that latency twice (once here, once in the page).
+// getClaims() verifies the JWT signature locally with WebCrypto against the
+// project's JWKS (cached), falling back to a network call only for legacy
+// symmetric tokens.
 const PUBLIC_DASHBOARD_PATHS = ["/dashboard/login", "/dashboard/signup"];
 
 export async function proxy(request: NextRequest) {
@@ -32,9 +39,8 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: claims } = await supabase.auth.getClaims();
+  const user = claims?.claims.sub ? claims.claims : null;
 
   const isPublicPath = PUBLIC_DASHBOARD_PATHS.some((path) => pathname.startsWith(path));
 

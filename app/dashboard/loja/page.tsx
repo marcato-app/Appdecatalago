@@ -1,23 +1,25 @@
 import Link from "next/link";
 import { eq, asc } from "drizzle-orm";
 import { db } from "@/db/client";
-import { storeLinks, templates } from "@/db/schema";
-import { requireOwnedStore } from "@/lib/stores";
+import { storeLinks } from "@/db/schema";
+import { requireOwnedStoreWithTemplate } from "@/lib/stores";
 import { getTemplateManifest } from "@/templates/registry";
 import { resolveStorefrontSettings } from "@/lib/storefront-settings";
 import { StoreEditForm } from "@/components/dashboard/StoreEditForm";
 import { StoreLinksManager } from "@/components/dashboard/StoreLinksManager";
 import { StorefrontSettingsForm } from "@/components/dashboard/StorefrontSettingsForm";
+import { StoreTemplateForm } from "@/components/dashboard/StoreTemplateForm";
 import { togglePublishAction } from "./actions";
 
 export default async function LojaPage() {
-  const store = await requireOwnedStore();
+  const { store, templateSlug } = await requireOwnedStoreWithTemplate();
   const isPublished = store.status === "published";
-  const [links, templateRow] = await Promise.all([
-    db.select().from(storeLinks).where(eq(storeLinks.storeId, store.id)).orderBy(asc(storeLinks.sortOrder)),
-    db.query.templates.findFirst({ where: eq(templates.id, store.templateId) }),
-  ]);
-  const isIphoneStore = templateRow ? getTemplateManifest(templateRow.slug)?.slug === "iphone-store" : false;
+  const links = await db
+    .select()
+    .from(storeLinks)
+    .where(eq(storeLinks.storeId, store.id))
+    .orderBy(asc(storeLinks.sortOrder));
+  const isIphoneStore = templateSlug ? getTemplateManifest(templateSlug)?.slug === "iphone-store" : false;
 
   return (
     <div className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-6 px-6 py-10">
@@ -75,6 +77,14 @@ export default async function LojaPage() {
             Gerenciar conteúdo <span aria-hidden="true">→</span>
           </Link>
         )}
+      </div>
+
+      <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Modelo</h2>
+        <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
+          Define o visual da sua vitrine e o que você gerencia no painel. Pode trocar quando quiser.
+        </p>
+        <StoreTemplateForm currentSlug={templateSlug} />
       </div>
 
       <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">

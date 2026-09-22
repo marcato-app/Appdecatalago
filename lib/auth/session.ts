@@ -13,19 +13,32 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 //
 // Wrapped in cache() — a layout and the page it wraps (or several
 // components in the same tree) commonly each call requireUser() on their
-// own; without this every one of them repeats a Supabase Auth round-trip
-// plus a users-table lookup for what is, within one request, always the
-// same answer.
+// own; without this every one of them repeats the auth check plus a
+// users-table lookup for what is, within one request, always the same
+// answer.
+//
+// Uses getClaims() rather than getUser(): getUser() always hits Supabase's
+// auth server over the network, which on Cloudflare Workers meant every
+// dashboard page waited on a remote round trip before even querying the
+// database. getClaims() verifies the access token's signature locally
+// (WebCrypto + cached JWKS) and only falls back to a network call for
+// legacy symmetric tokens, so the common path is now pure local work.
 export const getCurrentUser = cache(async () => {
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
 
-  if (!authUser?.email) return null;
+  const authProviderId = claims?.sub;
+  if (!authProviderId) return null;
 
-  const existing = await db.query.users.findFirst({ where: eq(users.authProviderId, authUser.id) });
+  const existing = await db.query.users.findFirst({ where: eq(users.authProviderId, authProviderId) });
   if (existing) return existing;
+
+  // Only needed to create the profile row — an existing lojista is resolved
+  // by `sub` above, so a session whose token happens not to carry an email
+  // claim never gets bounced back to login.
+  const email = claims?.email;
+  if (!email) return null;
 
   // First time we see this Supabase auth user (normally created already by
   // the signup action — this is just a safety net, e.g. for a future OAuth
@@ -33,9 +46,9 @@ export const getCurrentUser = cache(async () => {
   const [created] = await db
     .insert(users)
     .values({
-      email: authUser.email,
-      authProviderId: authUser.id,
-      name: typeof authUser.user_metadata?.name === "string" ? authUser.user_metadata.name : null,
+      email,
+      authProviderId,
+      name: typeof claims?.user_metadata?.name === "string" ? claims.user_metadata.name : null,
     })
     .returning();
   return created;
