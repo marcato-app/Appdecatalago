@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { updateStoreAction, type FormState } from "@/app/dashboard/loja/actions";
+import { updateStoreAction, type FormState } from "@/app/dashboard/(painel)/loja/actions";
 import type { stores } from "@/db/schema";
 import { BUSINESS_CATEGORIES } from "@/lib/business-categories";
 import { COLOR_PRESETS, FONT_PRESETS, matchPresetIds } from "@/lib/theme-presets";

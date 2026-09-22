@@ -1,4 +1,4 @@
-import { moveBlockItemAction } from "@/app/dashboard/loja/conteudo/actions";
+import { moveBlockItemAction } from "@/app/dashboard/(painel)/loja/conteudo/actions";
 import { AddBlockItemForm } from "./AddBlockItemForm";
 import { DeleteBlockItemButton } from "./DeleteBlockItemButton";
 import type { BlockDto, BlockItemDto } from "@/lib/blocks";

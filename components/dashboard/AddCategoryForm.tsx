@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { addCategoryAction, type FormState } from "@/app/dashboard/loja/produtos/actions";
+import { addCategoryAction, type FormState } from "@/app/dashboard/(painel)/loja/produtos/actions";
 import { showToast } from "@/lib/toast";
 
 const initialState: FormState = {};

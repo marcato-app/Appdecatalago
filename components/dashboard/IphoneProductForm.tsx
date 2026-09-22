@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { getIphoneCatalogModelsAction, type FormState } from "@/app/dashboard/loja/produtos/iphone-actions";
+import { getIphoneCatalogModelsAction, type FormState } from "@/app/dashboard/(painel)/loja/produtos/iphone-actions";
 import { showToast } from "@/lib/toast";
 import {
   IPHONE_COLOR_OPTIONS,

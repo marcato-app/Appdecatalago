@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { addStoreLinkAction, deleteStoreLinkAction, type LinkFormState } from "@/app/dashboard/loja/actions";
+import { addStoreLinkAction, deleteStoreLinkAction, type LinkFormState } from "@/app/dashboard/(painel)/loja/actions";
 import type { storeLinks } from "@/db/schema";
 
 const initialState: LinkFormState = {};

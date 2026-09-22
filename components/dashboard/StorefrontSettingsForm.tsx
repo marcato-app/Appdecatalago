@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { updateStorefrontSettingsAction, type StorefrontSettingsFormState } from "@/app/dashboard/loja/actions";
+import { updateStorefrontSettingsAction, type StorefrontSettingsFormState } from "@/app/dashboard/(painel)/loja/actions";
 import type { StorefrontSettings } from "@/lib/storefront-settings";
 
 const initialState: StorefrontSettingsFormState = {};

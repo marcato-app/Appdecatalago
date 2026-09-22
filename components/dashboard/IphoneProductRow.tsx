@@ -5,8 +5,8 @@ import {
   addIphoneProductAction,
   updateIphoneProductAction,
   type FormState,
-} from "@/app/dashboard/loja/produtos/iphone-actions";
-import { deleteProductAction, toggleProductActiveAction } from "@/app/dashboard/loja/produtos/actions";
+} from "@/app/dashboard/(painel)/loja/produtos/iphone-actions";
+import { deleteProductAction, toggleProductActiveAction } from "@/app/dashboard/(painel)/loja/produtos/actions";
 import { showToast } from "@/lib/toast";
 import { formatCentsToBRL } from "@/lib/money";
 import { IPHONE_CONDITION_LABELS } from "@/lib/iphone-models";

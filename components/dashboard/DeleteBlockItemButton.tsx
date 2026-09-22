@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteBlockItemAction } from "@/app/dashboard/loja/conteudo/actions";
+import { deleteBlockItemAction } from "@/app/dashboard/(painel)/loja/conteudo/actions";
 import { showToast } from "@/lib/toast";
 
 export function DeleteBlockItemButton({ itemId, confirmLabel }: { itemId: string; confirmLabel: string }) {

@@ -1,8 +1,10 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { asc, eq, inArray } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
-import { categories, products, productVariants } from "@/db/schema";
+import { categories, products } from "@/db/schema";
 import { requireOwnedStoreWithTemplate } from "@/lib/stores";
+import { getIphoneProducts } from "@/lib/iphone-products";
 import { getTemplateManifest } from "@/templates/registry";
 import { AddCategoryForm } from "@/components/dashboard/AddCategoryForm";
 import { AddProductInline } from "@/components/dashboard/AddProductInline";
@@ -13,50 +15,8 @@ import { deleteCategoryAction, moveCategoryAction } from "./actions";
 import type { CategoryOption } from "@/components/dashboard/ProductForm";
 
 async function IphoneProdutosPage({ storeId }: { storeId: string }) {
-  const productRows = await db
-    .select()
-    .from(products)
-    .where(eq(products.storeId, storeId))
-    .orderBy(asc(products.sortOrder));
-
-  const variantRows =
-    productRows.length === 0
-      ? []
-      : await db
-          .select()
-          .from(productVariants)
-          .where(
-            inArray(
-              productVariants.productId,
-              productRows.map((p) => p.id),
-            ),
-          )
-          .orderBy(asc(productVariants.sortOrder));
-
-  const variantsByProduct = new Map<string, typeof variantRows>();
-  for (const variant of variantRows) {
-    const list = variantsByProduct.get(variant.productId) ?? [];
-    list.push(variant);
-    variantsByProduct.set(variant.productId, list);
-  }
-
-  const items = productRows.map((product) => ({
-    id: product.id,
-    name: product.name,
-    condition: product.condition,
-    grade: product.grade,
-    batteryHealthPct: product.batteryHealthPct,
-    description: product.description,
-    includedItems: (product.includedItems as string[] | null) ?? [],
-    isActive: product.isActive,
-    variants: (variantsByProduct.get(product.id) ?? []).map((v) => ({
-      id: v.id,
-      color: v.color,
-      storageLabel: v.storageLabel,
-      priceCents: v.priceCents,
-      imageUrls: (v.imageUrls as string[] | null) ?? [],
-    })),
-  }));
+  const items = await getIphoneProducts(storeId);
+  const variantCount = items.reduce((total, item) => total + item.variants.length, 0);
 
   const groups: { condition: "lacrado" | "seminovo" | "cpo"; label: string }[] = [
     { condition: "lacrado", label: IPHONE_CONDITION_LABELS.lacrado },
@@ -69,17 +29,38 @@ async function IphoneProdutosPage({ storeId }: { storeId: string }) {
       <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Aparelhos</h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{items.length} aparelhos cadastrados.</p>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            {items.length} {items.length === 1 ? "aparelho cadastrado" : "aparelhos cadastrados"}
+            {variantCount > 0 ? ` · ${variantCount} variações` : ""}.
+          </p>
         </div>
+        {items.length > 0 ? (
+          <Link
+            href="/dashboard/loja/produtos/catalogo"
+            className="shrink-0 rounded-full bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
+          >
+            Catálogo
+          </Link>
+        ) : null}
       </div>
 
       {items.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-zinc-300 p-6 text-center dark:border-zinc-700">
-          <p className="text-sm font-medium">Nenhum aparelho cadastrado ainda</p>
-          <p className="mx-auto mt-1 max-w-sm text-sm text-zinc-500 dark:text-zinc-400">
-            Clique em <strong className="font-semibold">Cadastrar</strong> abaixo e use o{" "}
-            <strong className="font-semibold">&ldquo;Escolher do catálogo&rdquo;</strong> — ele preenche modelo,
-            descrição, ficha técnica e as cores/capacidades. Você só define o preço.
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-zinc-300 p-6 text-center dark:border-zinc-700">
+          <div>
+            <p className="text-sm font-medium">Sua vitrine está vazia</p>
+            <p className="mx-auto mt-1 max-w-sm text-sm text-zinc-500 dark:text-zinc-400">
+              O Flip já vem com um catálogo de iPhones pronto — descrição, ficha técnica, cores e capacidades de cada
+              modelo. Escolha os que você vende, ponha o preço e a loja nasce pronta.
+            </p>
+          </div>
+          <Link
+            href="/dashboard/loja/produtos/catalogo"
+            className="rounded-full bg-violet-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
+          >
+            Montar a loja pelo catálogo
+          </Link>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            ou cadastre um aparelho de cada vez no botão abaixo
           </p>
         </div>
       ) : (

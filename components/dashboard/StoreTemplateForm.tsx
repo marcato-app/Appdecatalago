@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { changeStoreTemplateAction, type FormState } from "@/app/dashboard/loja/actions";
+import { changeStoreTemplateAction, type FormState } from "@/app/dashboard/(painel)/loja/actions";
 import { showToast } from "@/lib/toast";
 import { templateManifests } from "@/templates/registry";
 

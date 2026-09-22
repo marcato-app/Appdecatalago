@@ -7,7 +7,7 @@ import {
   toggleProductActiveAction,
   updateProductAction,
   type FormState,
-} from "@/app/dashboard/loja/produtos/actions";
+} from "@/app/dashboard/(painel)/loja/produtos/actions";
 import { showToast } from "@/lib/toast";
 import { ImageUploadField } from "./ImageUploadField";
 

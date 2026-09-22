@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { addProductAction } from "@/app/dashboard/loja/produtos/actions";
+import { addProductAction } from "@/app/dashboard/(painel)/loja/produtos/actions";
 import { ProductForm, type CategoryOption } from "./ProductForm";
 
 export function AddProductInline({ categoryId, categories }: { categoryId: string; categories: CategoryOption[] }) {

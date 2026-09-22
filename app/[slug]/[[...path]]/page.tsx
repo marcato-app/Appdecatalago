@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { asc, eq, ne, and, inArray } from "drizzle-orm";
+import { asc, eq, ne, and } from "drizzle-orm";
 import { db } from "@/db/client";
-import { categories, products, productVariants, storeLinks } from "@/db/schema";
+import { categories, products, storeLinks } from "@/db/schema";
 import { getStoreBySlugWithTemplate } from "@/lib/stores";
+import { getIphoneProducts } from "@/lib/iphone-products";
 import { getCurrentUser } from "@/lib/auth/session";
 import { resolveTheme } from "@/lib/theme";
 import { findBusinessCategory } from "@/lib/business-categories";
@@ -21,7 +22,6 @@ import { Page as BarbeariaPage } from "@/templates/barbearia-tnt/Page";
 import { Page as ClinicaPage } from "@/templates/clinica/Page";
 import { Storefront as IphoneStorefront } from "@/templates/iphone-store/Storefront";
 import { ProductDetail as IphoneProductDetail } from "@/templates/iphone-store/ProductDetail";
-import type { IphoneProductDto } from "@/templates/iphone-store/types";
 import { getStoreBlocks, findBlock } from "@/lib/blocks";
 
 type Params = { slug: string; path?: string[] };
@@ -109,72 +109,6 @@ async function buildCardapioSections(storeId: string): Promise<CardapioSection[]
       })),
     }))
     .filter((section) => section.products.length > 0 || section.groups.some((g) => g.products.length > 0));
-}
-
-function toIphoneProductDtos(
-  productRows: (typeof products.$inferSelect)[],
-  variantRows: (typeof productVariants.$inferSelect)[],
-): IphoneProductDto[] {
-  const variantsByProduct = new Map<string, typeof variantRows>();
-  for (const variant of variantRows) {
-    const list = variantsByProduct.get(variant.productId) ?? [];
-    list.push(variant);
-    variantsByProduct.set(variant.productId, list);
-  }
-
-  return productRows
-    .map((product) => ({
-      id: product.id,
-      name: product.name,
-      condition: product.condition,
-      grade: product.grade,
-      batteryHealthPct: product.batteryHealthPct,
-      description: product.description,
-      includedItems: (product.includedItems as string[] | null) ?? [],
-      variants: (variantsByProduct.get(product.id) ?? [])
-        .sort((a, b) => a.sortOrder - b.sortOrder)
-        .map((v) => ({
-          id: v.id,
-          color: v.color,
-          storageLabel: v.storageLabel,
-          priceCents: v.priceCents,
-          imageUrls: (v.imageUrls as string[] | null) ?? [],
-        })),
-    }))
-    .filter((product) => product.variants.length > 0);
-}
-
-async function getIphoneStoreProducts(storeId: string): Promise<IphoneProductDto[]> {
-  const productRows = await db
-    .select()
-    .from(products)
-    .where(and(eq(products.storeId, storeId), eq(products.isActive, true)))
-    .orderBy(asc(products.sortOrder));
-
-  if (productRows.length === 0) return [];
-
-  const variantRows = await db
-    .select()
-    .from(productVariants)
-    .where(
-      inArray(
-        productVariants.productId,
-        productRows.map((p) => p.id),
-      ),
-    );
-
-  return toIphoneProductDtos(productRows, variantRows);
-}
-
-async function getIphoneStoreProduct(storeId: string, productId: string): Promise<IphoneProductDto | null> {
-  const product = await db.query.products.findFirst({
-    where: and(eq(products.id, productId), eq(products.storeId, storeId), eq(products.isActive, true)),
-  });
-  if (!product) return null;
-
-  const variantRows = await db.select().from(productVariants).where(eq(productVariants.productId, product.id));
-  const [dto] = toIphoneProductDtos([product], variantRows);
-  return dto ?? null;
 }
 
 const RENDERABLE_LINK_TYPES = ["website", "app_store", "play_store", "custom"] as const;
@@ -309,7 +243,9 @@ async function StoreContent({ params }: { params: Promise<Params> }) {
     const settings = resolveStorefrontSettings(store.storefrontSettings);
 
     if (!segment) {
-      const iphoneProducts = await getIphoneStoreProducts(store.id);
+      const iphoneProducts = (await getIphoneProducts(store.id, { onlyActive: true })).filter(
+        (p) => p.variants.length > 0,
+      );
       return (
         <>
           <ThemeStyle theme={theme} />
@@ -319,8 +255,8 @@ async function StoreContent({ params }: { params: Promise<Params> }) {
     }
 
     if (segment === "produto" && path?.length === 2) {
-      const product = await getIphoneStoreProduct(store.id, path[1]);
-      if (!product) notFound();
+      const [product] = await getIphoneProducts(store.id, { onlyActive: true, productId: path[1] });
+      if (!product || product.variants.length === 0) notFound();
       return (
         <>
           <ThemeStyle theme={theme} />

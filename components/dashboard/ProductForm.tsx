@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import type { FormState } from "@/app/dashboard/loja/produtos/actions";
+import type { FormState } from "@/app/dashboard/(painel)/loja/produtos/actions";
 import { showToast } from "@/lib/toast";
 import { ImageUploadField } from "./ImageUploadField";
 

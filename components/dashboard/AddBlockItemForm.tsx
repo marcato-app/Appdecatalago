@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { addBlockItemAction, type FormState } from "@/app/dashboard/loja/conteudo/actions";
+import { addBlockItemAction, type FormState } from "@/app/dashboard/(painel)/loja/conteudo/actions";
 import { showToast } from "@/lib/toast";
 import type { BlockType } from "@/templates/types";
 import { ImageUploadField } from "./ImageUploadField";
