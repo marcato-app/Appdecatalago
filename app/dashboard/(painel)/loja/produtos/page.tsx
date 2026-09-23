@@ -35,12 +35,20 @@ async function IphoneProdutosPage({ storeId }: { storeId: string }) {
           </p>
         </div>
         {items.length > 0 ? (
-          <Link
-            href="/dashboard/loja/produtos/catalogo"
-            className="shrink-0 rounded-full bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
-          >
-            Catálogo
-          </Link>
+          <div className="flex shrink-0 gap-2">
+            <Link
+              href="/dashboard/loja/produtos/fotos"
+              className="rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            >
+              Fotos em massa
+            </Link>
+            <Link
+              href="/dashboard/loja/produtos/catalogo"
+              className="rounded-full bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
+            >
+              Catálogo
+            </Link>
+          </div>
         ) : null}
       </div>
 

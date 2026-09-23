@@ -57,3 +57,8 @@ export const IPHONE_CONDITION_LABELS: Record<"lacrado" | "seminovo" | "cpo", str
 export const IPHONE_GRADE_OPTIONS: string[] = ["A", "AB", "B"];
 
 export const IPHONE_INCLUDED_ITEM_OPTIONS: string[] = ["Caixa", "Cabo", "Fonte", "Capinha", "Película", "Fone"];
+
+// Fotos por variação (cor/capacidade): frente, traseira, ângulo, lateral,
+// dupla — o shot list padrão de renders de produto. jsonb, sem limite de
+// schema; só a validação da action e o formulário respeitam este teto.
+export const MAX_VARIANT_PHOTOS = 5;

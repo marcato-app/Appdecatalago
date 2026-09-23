@@ -12,6 +12,7 @@ import { z } from "zod";
 import { db } from "@/db/client";
 import { iphoneCatalogModels, iphoneCatalogVariants, products, productVariants } from "@/db/schema";
 import { requireOwnedStore } from "@/lib/stores";
+import { MAX_VARIANT_PHOTOS } from "@/lib/iphone-models";
 import { parseBRLToCents } from "@/lib/money";
 import { imageRefSchema } from "@/lib/image-ref";
 import type { CatalogModelOption } from "@/components/dashboard/IphoneProductForm";
@@ -55,7 +56,7 @@ const variantInputSchema = z.object({
   color: z.string().trim(),
   storageLabel: z.string().trim().optional(),
   price: z.string().trim(),
-  imageUrls: z.array(imageRefSchema).max(4).default([]),
+  imageUrls: z.array(imageRefSchema).max(MAX_VARIANT_PHOTOS).default([]),
 });
 
 const iphoneProductSchema = z.object({
@@ -123,7 +124,7 @@ function parseIphoneProductForm(formData: FormData): { ok: true; data: ParsedIph
       color: variant.color,
       storageLabel: variant.storageLabel || null,
       priceCents,
-      imageUrls: variant.imageUrls.slice(0, 4),
+      imageUrls: variant.imageUrls.slice(0, MAX_VARIANT_PHOTOS),
     });
   }
 

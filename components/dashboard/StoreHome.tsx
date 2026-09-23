@@ -95,8 +95,8 @@ export function StoreHome({ store, templateName, isIphoneStore, stats }: StoreHo
       done: (stats?.variants ?? 0) === 0 || (stats?.variantsWithoutPhoto ?? 0) === 0,
       title: "Adicionar as fotos",
       description: `${stats?.variantsWithoutPhoto ?? 0} variações ainda estão sem foto — é a foto que faz o cliente parar pra olhar.`,
-      href: manageHref,
-      cta: "Adicionar",
+      href: isIphoneStore ? "/dashboard/loja/produtos/fotos" : manageHref,
+      cta: isIphoneStore ? "Fotos em massa" : "Adicionar",
     },
     {
       done: Boolean(store.logoUrl),

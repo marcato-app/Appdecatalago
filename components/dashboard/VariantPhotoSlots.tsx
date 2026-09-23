@@ -2,8 +2,7 @@
 
 import { useRef, useState, useTransition, type ChangeEvent } from "react";
 import { uploadImageAction } from "@/lib/uploads";
-
-const MAX_PHOTOS = 4;
+import { MAX_VARIANT_PHOTOS as MAX_PHOTOS } from "@/lib/iphone-models";
 
 // Up to 4 photo slots for one product variant (color) — fill in order,
 // each slot uploads independently via the same Server Action ImageUploadField
