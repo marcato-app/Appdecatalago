@@ -12,11 +12,20 @@
 // capacity (times however many colors they pick), price and photos left
 // blank for them to fill in.
 
+import type { ProductLine } from "@/lib/iphone-models";
+
 export interface IphoneCatalogModelData {
   name: string;
+  /** Omitido = "iphone" — todo modelo escrito antes da linha de produto
+   * existir é iPhone, então só as entradas de Watch/AirPods/iPad/Mac abaixo
+   * precisam declarar isso. */
+  productLine?: ProductLine;
   description: string;
   specsText: string;
   colors: string[];
+  /** Pra AirPods (sem capacidade/tamanho) usa um único item — mantém a
+   * estrutura "preço por opção × cores" da importação em lote funcionando
+   * sem precisar de uma coluna nullable em iphone_catalog_variants. */
   storageOptions: string[];
 }
 
@@ -395,6 +404,19 @@ export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
     storageOptions: ["128GB", "256GB", "512GB"],
   },
   {
+    name: "iPhone 12 Pro",
+    description: "Câmera tripla com LiDAR no tamanho mais popular da linha — a mesma câmera do Pro Max, mais compacto.",
+    specsText: [
+      "Chip A14",
+      "Tela Super Retina XDR de 6,1\"",
+      "Câmera tripla de 12MP com sensor LiDAR",
+      "Conector Lightning, 5G",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Grafite", "Prateado", "Dourado", "Azul-Pacífico"],
+    storageOptions: ["128GB", "256GB", "512GB"],
+  },
+  {
     name: "iPhone 12 mini",
     description: "Todo o desempenho do iPhone 12 no corpo mais compacto que a Apple já fez.",
     specsText: [
@@ -445,5 +467,284 @@ export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
     ].join("\n"),
     colors: ["Preto", "Branco", "Verde", "Amarelo", "Roxo", "PRODUCT RED"],
     storageOptions: ["64GB", "128GB", "256GB"],
+  },
+
+  // ---------------------------------------------------------------------
+  // Apple Watch
+  // ---------------------------------------------------------------------
+  {
+    name: "Apple Watch Series 10",
+    productLine: "watch",
+    description: "O Apple Watch mais fino já feito, com tela maior de bordas quase invisíveis e sensor de apneia do sono.",
+    specsText: [
+      "Caixa em alumínio, 42mm ou 46mm",
+      "Tela Retina LTPO OLED always-on",
+      "Sensor de temperatura, oxigênio no sangue e apneia do sono",
+      "Resistência à água até 50 metros",
+      "Carregamento rápido — 80% em 30 minutos",
+      "Conectividade GPS ou GPS + Cellular",
+    ].join("\n"),
+    colors: ["Preto", "Prateado", "Rosé"],
+    storageOptions: ["42mm", "46mm"],
+  },
+  {
+    name: "Apple Watch Ultra 2",
+    productLine: "watch",
+    description: "O mais resistente da linha — caixa em titânio, tela mais brilhante da Apple e bateria para até 3 dias.",
+    specsText: [
+      "Caixa em titânio, 49mm",
+      "Tela Retina LTPO OLED always-on — até 3.000 nizes de brilho",
+      "Botão de Ação personalizável",
+      "Resistência à água até 100 metros, certificado para mergulho",
+      "GPS de dupla frequência",
+      "Bateria: até 36h no uso normal, até 72h no modo economia",
+    ].join("\n"),
+    colors: ["Titânio Natural", "Titânio Preto"],
+    storageOptions: ["49mm"],
+  },
+  {
+    name: "Apple Watch SE",
+    productLine: "watch",
+    description: "Os recursos essenciais do Apple Watch — atividade, notificações e detecção de queda — no preço mais acessível da linha.",
+    specsText: [
+      "Caixa em alumínio, 40mm ou 44mm",
+      "Tela Retina OLED",
+      "Detecção de acidente de carro e de queda",
+      "Resistência à água até 50 metros",
+      "Conectividade GPS ou GPS + Cellular",
+    ].join("\n"),
+    colors: ["Meia-noite", "Estelar", "Prateado"],
+    storageOptions: ["40mm", "44mm"],
+  },
+
+  // ---------------------------------------------------------------------
+  // AirPods — sem capacidade/tamanho, "Único" representa a única opção de
+  // SKU pra manter o fluxo de preço por variação da importação em lote.
+  // ---------------------------------------------------------------------
+  {
+    name: "AirPods 4",
+    productLine: "airpods",
+    description: "O AirPods de entrada com o design mais novo — case USB-C e melhor ajuste no ouvido.",
+    specsText: [
+      "Chip H2",
+      "Áudio espacial personalizado",
+      "Resistência a suor e água (IP54)",
+      "Case de recarga USB-C",
+      "Bateria: até 5h de escuta, até 30h com o case",
+    ].join("\n"),
+    colors: ["Branco"],
+    storageOptions: ["Único"],
+  },
+  {
+    name: "AirPods 4 (ANC)",
+    productLine: "airpods",
+    description: "A versão do AirPods 4 com cancelamento ativo de ruído e áudio espacial adaptativo.",
+    specsText: [
+      "Chip H2",
+      "Cancelamento ativo de ruído e modo ambiente",
+      "Áudio espacial personalizado adaptativo",
+      "Resistência a suor e água (IP54)",
+      "Case de recarga USB-C com localização precisa",
+      "Bateria: até 4h de escuta com ANC, até 20h com o case",
+    ].join("\n"),
+    colors: ["Branco"],
+    storageOptions: ["Único"],
+  },
+  {
+    name: "AirPods Pro 2",
+    productLine: "airpods",
+    description: "O topo de linha in-ear da Apple — cancelamento de ruído até 2x mais forte que o modelo anterior e áudio adaptativo.",
+    specsText: [
+      "Chip H2",
+      "Cancelamento ativo de ruído e modo transparência",
+      "Áudio adaptativo e Audição Assistida",
+      "Resistência a suor e água (IP54)",
+      "Case de recarga USB-C com alto-falante de localização",
+      "Bateria: até 6h de escuta com ANC, até 30h com o case",
+    ].join("\n"),
+    colors: ["Branco"],
+    storageOptions: ["Único"],
+  },
+  {
+    name: "AirPods Max",
+    productLine: "airpods",
+    description: "O fone over-ear da Apple — som de alta fidelidade, cancelamento de ruído e Áudio Espacial com rastreamento de cabeça.",
+    specsText: [
+      "Driver dinâmico de 40mm",
+      "Cancelamento ativo de ruído e modo transparência",
+      "Áudio Espacial com rastreamento dinâmico de cabeça",
+      "Haste digital para controle de volume",
+      "Case de recarga USB-C",
+      "Bateria: até 20h de escuta",
+    ].join("\n"),
+    colors: ["Cinza-espacial", "Prateado", "Azul", "Roxo", "Laranja"],
+    storageOptions: ["Único"],
+  },
+
+  // ---------------------------------------------------------------------
+  // iPad
+  // ---------------------------------------------------------------------
+  {
+    name: "iPad Pro",
+    productLine: "ipad",
+    description: "O iPad mais potente da Apple — tela Ultra Retina XDR e o desempenho de um Mac num corpo ultrafino.",
+    specsText: [
+      "Chip M4",
+      "Tela Ultra Retina XDR (OLED) de 11\" ou 13\"",
+      "Câmera traseira de 12MP + LiDAR",
+      "Compatível com Apple Pencil Pro e Magic Keyboard",
+      "Conector USB-C (Thunderbolt)",
+      "Wi-Fi 6E ou Wi-Fi + 5G",
+    ].join("\n"),
+    colors: ["Prateado", "Cinza-espacial"],
+    storageOptions: ["256GB", "512GB", "1TB", "2TB"],
+  },
+  {
+    name: "iPad Air",
+    productLine: "ipad",
+    description: "Leve, rápido e versátil — o meio-termo ideal entre o iPad básico e o Pro.",
+    specsText: [
+      "Chip M2 ou M3",
+      "Tela Liquid Retina de 11\" ou 13\"",
+      "Câmera traseira de 12MP",
+      "Compatível com Apple Pencil Pro",
+      "Conector USB-C",
+      "Wi-Fi ou Wi-Fi + 5G",
+    ].join("\n"),
+    colors: ["Cinza-espacial", "Azul", "Roxo", "Estelar"],
+    storageOptions: ["128GB", "256GB", "512GB", "1TB"],
+  },
+  {
+    name: "iPad",
+    productLine: "ipad",
+    description: "O iPad mais popular — leve, acessível e pronto pra estudo, trabalho e entretenimento no dia a dia.",
+    specsText: [
+      "Chip A16",
+      "Tela Liquid Retina de 10,9\"",
+      "Câmera traseira de 12MP",
+      "Compatível com Apple Pencil (USB-C) e Smart Folio",
+      "Conector USB-C",
+      "Wi-Fi ou Wi-Fi + celular",
+    ].join("\n"),
+    colors: ["Azul", "Rosa", "Amarelo", "Prateado"],
+    storageOptions: ["128GB", "256GB"],
+  },
+  {
+    name: "iPad mini",
+    productLine: "ipad",
+    description: "Todo o poder do iPad num corpo compacto — cabe numa mão e numa bolsa pequena.",
+    specsText: [
+      "Chip A17 Pro",
+      "Tela Liquid Retina de 8,3\"",
+      "Câmera traseira de 12MP",
+      "Compatível com Apple Pencil Pro",
+      "Conector USB-C",
+      "Wi-Fi ou Wi-Fi + 5G",
+    ].join("\n"),
+    colors: ["Cinza-espacial", "Estelar", "Roxo", "Azul"],
+    storageOptions: ["128GB", "256GB", "512GB"],
+  },
+
+  // ---------------------------------------------------------------------
+  // Mac
+  // ---------------------------------------------------------------------
+  {
+    name: "MacBook Air 13\"",
+    productLine: "mac",
+    description: "O notebook mais leve da Apple — silencioso (sem ventoinha) e com bateria para o dia inteiro.",
+    specsText: [
+      "Chip M4",
+      "Tela Liquid Retina de 13,6\"",
+      "Sem ventoinha — operação silenciosa",
+      "Câmera FaceTime HD 12MP",
+      "Bateria: até 18h",
+      "2 portas USB-C (Thunderbolt)",
+    ].join("\n"),
+    colors: ["Meia-noite", "Estelar", "Cinza-espacial", "Prateado"],
+    storageOptions: ["256GB", "512GB", "1TB", "2TB"],
+  },
+  {
+    name: "MacBook Air 15\"",
+    productLine: "mac",
+    description: "A tela grande do Air — mais espaço pra trabalhar, mesma leveza e silêncio da linha.",
+    specsText: [
+      "Chip M4",
+      "Tela Liquid Retina de 15,3\"",
+      "Sem ventoinha — operação silenciosa",
+      "Câmera FaceTime HD 12MP",
+      "Bateria: até 18h",
+      "2 portas USB-C (Thunderbolt)",
+    ].join("\n"),
+    colors: ["Meia-noite", "Estelar", "Cinza-espacial", "Prateado"],
+    storageOptions: ["256GB", "512GB", "1TB", "2TB"],
+  },
+  {
+    name: "MacBook Pro 14\"",
+    productLine: "mac",
+    description: "Desempenho profissional em corpo compacto — tela Liquid Retina XDR e até 24h de bateria.",
+    specsText: [
+      "Chip M4, M4 Pro ou M4 Max",
+      "Tela Liquid Retina XDR (mini-LED) de 14,2\"",
+      "Câmera FaceTime HD 12MP com Center Stage",
+      "Bateria: até 24h",
+      "Portas Thunderbolt 4/5, HDMI, leitor de cartão SD",
+    ].join("\n"),
+    colors: ["Cinza-espacial", "Prateado"],
+    storageOptions: ["512GB", "1TB", "2TB", "4TB"],
+  },
+  {
+    name: "MacBook Pro 16\"",
+    productLine: "mac",
+    description: "O maior e mais potente MacBook — feito pra edição de vídeo pesada e cargas de trabalho profissionais.",
+    specsText: [
+      "Chip M4 Pro ou M4 Max",
+      "Tela Liquid Retina XDR (mini-LED) de 16,2\"",
+      "Câmera FaceTime HD 12MP com Center Stage",
+      "Bateria: até 24h",
+      "Portas Thunderbolt 4/5, HDMI, leitor de cartão SD",
+    ].join("\n"),
+    colors: ["Cinza-espacial", "Prateado"],
+    storageOptions: ["512GB", "1TB", "2TB", "4TB", "8TB"],
+  },
+  {
+    name: "iMac",
+    productLine: "mac",
+    description: "O desktop tudo-em-um da Apple — tela de 24\" fina e colorida, pronto pra usar assim que tira da caixa.",
+    specsText: [
+      "Chip M4",
+      "Tela Retina 4.5K de 24\"",
+      "Câmera 12MP com Center Stage",
+      "4 alto-falantes com Áudio Espacial",
+      "2 ou 4 portas USB-C (Thunderbolt)",
+      "Teclado, mouse ou Trackpad sem fio inclusos",
+    ].join("\n"),
+    colors: ["Azul", "Verde", "Rosa", "Roxo", "Prateado", "Amarelo", "Laranja"],
+    storageOptions: ["256GB", "512GB", "1TB"],
+  },
+  {
+    name: "Mac mini",
+    productLine: "mac",
+    description: "O desktop mais compacto e acessível da Apple — cabe na palma da mão, desempenho de sobra pro dia a dia.",
+    specsText: [
+      "Chip M4 ou M4 Pro",
+      "Até 3 monitores externos simultâneos",
+      "Portas Thunderbolt 4/5, HDMI, USB-A",
+      "Wi-Fi 6E, Bluetooth 5.3",
+    ].join("\n"),
+    colors: ["Prateado"],
+    storageOptions: ["256GB", "512GB", "1TB", "2TB"],
+  },
+  {
+    name: "Mac Studio",
+    productLine: "mac",
+    description: "Estação de trabalho compacta pra quem precisa do máximo de desempenho — vídeo 8K, IA e cargas profissionais pesadas.",
+    specsText: [
+      "Chip M4 Max ou M3 Ultra",
+      "Até 6 monitores externos simultâneos",
+      "Portas Thunderbolt 4/5, HDMI, leitor de cartão SD, USB-A",
+      "Wi-Fi 6E, Bluetooth 5.3",
+    ].join("\n"),
+    colors: ["Prateado"],
+    storageOptions: ["512GB", "1TB", "2TB", "4TB", "8TB"],
   },
 ];

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { formatCentsToBRL } from "@/lib/money";
 import { installmentCents, type StorefrontSettings } from "@/lib/storefront-settings";
 import { colorSwatch } from "@/lib/iphone-colors";
-import { IPHONE_CONDITION_LABELS } from "@/lib/iphone-models";
+import { IPHONE_CONDITION_LABELS, PRODUCT_LINE_STORAGE_LABELS } from "@/lib/iphone-models";
 import { PhotoCarousel } from "./PhotoCarousel";
 import styles from "./Storefront.module.css";
 import type { IphoneProductDto } from "./types";
@@ -21,8 +21,11 @@ export function ProductCard({
 
   const cheapest = variants.reduce((min, v) => (v.priceCents < min.priceCents ? v : min), variants[0]);
   const distinctColors = Array.from(new Set(variants.map((v) => v.color)));
+  const hasStorage = PRODUCT_LINE_STORAGE_LABELS[product.productLine] !== null;
   const metaLabel =
-    variants.length === 1 ? [variants[0].storageLabel, "1 cor"].filter(Boolean).join(" · ") : `${variants.length} opções`;
+    variants.length === 1
+      ? [hasStorage ? variants[0].storageLabel : null, "1 cor"].filter(Boolean).join(" · ")
+      : `${variants.length} opções`;
 
   return (
     <div className={styles.card}>

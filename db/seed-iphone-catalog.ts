@@ -25,18 +25,20 @@ async function main() {
     const entry = IPHONE_CATALOG_DATA[i];
     const existing = await db.query.iphoneCatalogModels.findFirst({ where: eq(iphoneCatalogModels.name, entry.name) });
 
+    const productLine = entry.productLine ?? "iphone";
+
     let modelId: string;
     if (existing) {
       await db
         .update(iphoneCatalogModels)
-        .set({ description: entry.description, specsText: entry.specsText, sortOrder: i })
+        .set({ description: entry.description, specsText: entry.specsText, productLine, sortOrder: i })
         .where(eq(iphoneCatalogModels.id, existing.id));
       modelId = existing.id;
       await db.delete(iphoneCatalogVariants).where(eq(iphoneCatalogVariants.modelId, modelId));
     } else {
       const [inserted] = await db
         .insert(iphoneCatalogModels)
-        .values({ name: entry.name, description: entry.description, specsText: entry.specsText, sortOrder: i })
+        .values({ name: entry.name, description: entry.description, specsText: entry.specsText, productLine, sortOrder: i })
         .returning({ id: iphoneCatalogModels.id });
       modelId = inserted.id;
     }

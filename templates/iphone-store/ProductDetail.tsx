@@ -6,7 +6,7 @@ import { formatCentsToBRL } from "@/lib/money";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { installmentCents, type StorefrontSettings } from "@/lib/storefront-settings";
 import { colorSwatch } from "@/lib/iphone-colors";
-import { IPHONE_CONDITION_LABELS } from "@/lib/iphone-models";
+import { IPHONE_CONDITION_LABELS, PRODUCT_LINE_STORAGE_LABELS } from "@/lib/iphone-models";
 import { PhotoCarousel } from "./PhotoCarousel";
 import { ChevronLeftIcon } from "./icons";
 import styles from "./ProductDetail.module.css";
@@ -33,6 +33,11 @@ export function ProductDetail({
 
   if (!selectedVariant) return null;
 
+  // Linhas sem dimensão de capacidade/tamanho (AirPods) usam "Único" só
+  // internamente pra manter o fluxo de preço da importação em lote — não faz
+  // sentido mostrar isso pro cliente final.
+  const hasStorage = PRODUCT_LINE_STORAGE_LABELS[product.productLine] !== null;
+
   const installmentLine = settings.installments.enabled
     ? `Ou em até ${settings.installments.maxInstallments}x de ${formatCentsToBRL(
         installmentCents(selectedVariant.priceCents, settings.installments.maxInstallments, settings.installments.feeRatePct),
@@ -42,7 +47,7 @@ export function ProductDetail({
   const canSendLead = name.trim().length > 0 && phone.trim().length > 0;
 
   const leadMessage = [
-    `Olá! Tenho interesse no ${product.name}${selectedVariant.storageLabel ? ` ${selectedVariant.storageLabel}` : ""} (${selectedVariant.color}).`,
+    `Olá! Tenho interesse no ${product.name}${hasStorage && selectedVariant.storageLabel ? ` ${selectedVariant.storageLabel}` : ""} (${selectedVariant.color}).`,
     `Valor: ${formatCentsToBRL(selectedVariant.priceCents)}`,
     "",
     `Nome: ${name}`,
@@ -80,8 +85,8 @@ export function ProductDetail({
                 onClick={() => setSelectedVariantId(variant.id)}
                 className={`${styles.variantThumb} ${variant.id === selectedVariant.id ? styles.variantThumbActive : ""}`}
                 style={{ background: variant.imageUrls[0] ? undefined : colorSwatch(variant.color) }}
-                aria-label={`${variant.color}${variant.storageLabel ? ` ${variant.storageLabel}` : ""}`}
-                title={`${variant.color}${variant.storageLabel ? ` ${variant.storageLabel}` : ""}`}
+                aria-label={`${variant.color}${hasStorage && variant.storageLabel ? ` ${variant.storageLabel}` : ""}`}
+                title={`${variant.color}${hasStorage && variant.storageLabel ? ` ${variant.storageLabel}` : ""}`}
               >
                 {variant.imageUrls[0] ? (
                   // eslint-disable-next-line @next/next/no-img-element -- uploaded via R2
@@ -101,7 +106,7 @@ export function ProductDetail({
 
           <h1 className={styles.title}>
             {product.name}
-            {selectedVariant.storageLabel ? ` ${selectedVariant.storageLabel}` : ""}
+            {hasStorage && selectedVariant.storageLabel ? ` ${selectedVariant.storageLabel}` : ""}
           </h1>
           <p className={styles.metaText}>{selectedVariant.color}</p>
 
