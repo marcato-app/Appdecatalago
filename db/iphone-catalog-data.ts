@@ -287,7 +287,7 @@ export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
       "Conector Lightning, 5G",
       "Resistência a água e poeira IP68",
     ].join("\n"),
-    colors: ["Azul", "Roxo", "Meia-noite", "Estelar", "PRODUCT RED"],
+    colors: ["Azul", "Roxo", "Meia-noite", "Estelar", "PRODUCT RED", "Amarelo"],
     storageOptions: ["128GB", "256GB", "512GB"],
   },
   {
@@ -300,7 +300,7 @@ export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
       "Conector Lightning, 5G",
       "Resistência a água e poeira IP68",
     ].join("\n"),
-    colors: ["Azul", "Roxo", "Meia-noite", "Estelar", "PRODUCT RED"],
+    colors: ["Azul", "Roxo", "Meia-noite", "Estelar", "PRODUCT RED", "Amarelo"],
     storageOptions: ["128GB", "256GB", "512GB"],
   },
   {
