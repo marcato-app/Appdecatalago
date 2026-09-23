@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth/session";
 import { getOwnedStore } from "@/lib/stores";
+import { isCatalogAdminEmail } from "@/lib/admin";
 import { LogoutButton } from "@/components/dashboard/LogoutButton";
 import { NavLink } from "@/components/dashboard/NavLink";
 import { ToastHost } from "@/components/dashboard/ToastHost";
@@ -18,8 +19,9 @@ import { ToastHost } from "@/components/dashboard/ToastHost";
 // the page it wraps share one database round trip instead of each doing
 // their own.
 export default async function DashboardShellLayout({ children }: { children: React.ReactNode }) {
-  await requireUser();
+  const user = await requireUser();
   const store = await getOwnedStore();
+  const isAdmin = isCatalogAdminEmail(user.email);
 
   return (
     <div className="flex flex-1 flex-col bg-zinc-50 dark:bg-zinc-950">
@@ -43,14 +45,21 @@ export default async function DashboardShellLayout({ children }: { children: Rea
           </div>
         </div>
 
-        {store ? (
+        {store || isAdmin ? (
           <div className="mx-auto w-full max-w-4xl px-6 pb-3 pt-2">
             <nav className="flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100 p-1 dark:border-zinc-800 dark:bg-zinc-900">
-              <NavLink href="/dashboard">Início</NavLink>
-              <NavLink href={store.businessType === "catalog" ? "/dashboard/loja/produtos" : "/dashboard/loja/conteudo"}>
-                {store.businessType === "catalog" ? "Produtos" : "Conteúdo"}
-              </NavLink>
-              <NavLink href="/dashboard/loja">Loja</NavLink>
+              {store ? (
+                <>
+                  <NavLink href="/dashboard">Início</NavLink>
+                  <NavLink href={store.businessType === "catalog" ? "/dashboard/loja/produtos" : "/dashboard/loja/conteudo"}>
+                    {store.businessType === "catalog" ? "Produtos" : "Conteúdo"}
+                  </NavLink>
+                  <NavLink href="/dashboard/loja">Loja</NavLink>
+                </>
+              ) : null}
+              {/* Só quem está em CATALOG_ADMIN_EMAILS (lib/admin.ts) vê isto —
+                  edita o catálogo global de fotos, não a loja da pessoa. */}
+              {isAdmin ? <NavLink href="/dashboard/catalogo">Catálogo</NavLink> : null}
             </nav>
           </div>
         ) : null}

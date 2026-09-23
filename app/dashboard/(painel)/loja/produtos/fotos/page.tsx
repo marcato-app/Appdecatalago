@@ -3,6 +3,10 @@ import { redirect } from "next/navigation";
 import { requireOwnedStoreWithTemplate } from "@/lib/stores";
 import { getTemplateManifest } from "@/templates/registry";
 import { BulkPhotoImport } from "@/components/dashboard/BulkPhotoImport";
+import {
+  attachPhotosToVariantsAction,
+  getBulkPhotoTargetsAction,
+} from "@/app/dashboard/(painel)/loja/produtos/bulk-photos-actions";
 
 export default async function FotosPage() {
   const { templateSlug } = await requireOwnedStoreWithTemplate();
@@ -27,7 +31,7 @@ export default async function FotosPage() {
         </p>
       </div>
 
-      <BulkPhotoImport />
+      <BulkPhotoImport getTargets={getBulkPhotoTargetsAction} attachPhotos={attachPhotosToVariantsAction} />
     </div>
   );
 }

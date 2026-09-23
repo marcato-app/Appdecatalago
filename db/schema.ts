@@ -179,9 +179,10 @@ export const products = pgTable("products", {
 });
 
 // Color/storage variants of a single iphone-store product ("iPhone 14"):
-// each combination has its own price and up to 4 photos. Only used by the
-// iphone-store template — every other catalog template's products have zero
-// variant rows and priceCents/imageUrl on the product itself are authoritative.
+// each combination has its own price and up to MAX_VARIANT_PHOTOS photos
+// (lib/iphone-models.ts). Only used by the iphone-store template — every
+// other catalog template's products have zero variant rows and
+// priceCents/imageUrl on the product itself are authoritative.
 export const productVariants = pgTable("product_variants", {
   id: uuid("id").primaryKey().defaultRandom(),
   productId: uuid("product_id")
@@ -190,7 +191,7 @@ export const productVariants = pgTable("product_variants", {
   color: text("color").notNull(),
   storageLabel: text("storage_label"), // "128GB", "1TB"...
   priceCents: integer("price_cents").notNull(),
-  imageUrls: jsonb("image_urls").notNull().default([]), // string[], up to 4
+  imageUrls: jsonb("image_urls").notNull().default([]), // string[]
   sortOrder: integer("sort_order").notNull().default(0),
 });
 
@@ -198,9 +199,20 @@ export const productVariants = pgTable("product_variants", {
 // iPhone reference catalog — global, app-level data (NOT store-scoped, no
 // storeId/ownerId). Lets any lojista using the iphone-store template pick a
 // real model from a pre-filled list (name, marketing description, technical
-// specs, real color/storage combinations) instead of typing every field by
-// hand — they still set their own price and upload their own photos per
-// variant. Seeded via db/seed-iphone-catalog.ts, same pattern as `templates`.
+// specs, real color/storage combinations, default photos) instead of typing
+// every field by hand. Seeded via db/seed-iphone-catalog.ts, same pattern as
+// `templates`.
+//
+// imageUrls on the variant is the platform's default product photo for that
+// color — set once here (see app/dashboard/(painel)/catalogo, gated to
+// CATALOG_ADMIN_EMAILS) and every store that imports the model starts with
+// it already filled in, instead of every lojista uploading the exact same
+// stock photo separately. Only applied to Lacrado (sealed/new) products on
+// import (db/iphone-catalog-data helpers) — a used unit's real wear isn't
+// this photo, so Semi novo/CPO always start empty and get the lojista's own
+// photo of the actual device. A lojista can still add/replace photos on
+// their own product afterward (lib/iphone-products.ts) without touching
+// this table — the two are independent, this is only ever a starting point.
 // ---------------------------------------------------------------------------
 
 export const iphoneCatalogModels = pgTable("iphone_catalog_models", {
@@ -218,6 +230,7 @@ export const iphoneCatalogVariants = pgTable("iphone_catalog_variants", {
     .references(() => iphoneCatalogModels.id),
   color: text("color").notNull(),
   storageLabel: text("storage_label").notNull(),
+  imageUrls: jsonb("image_urls").notNull().default([]), // string[] — foto padrão da cor
   sortOrder: integer("sort_order").notNull().default(0),
 });
 

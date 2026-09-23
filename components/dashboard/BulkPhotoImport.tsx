@@ -4,10 +4,6 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { uploadImageAction } from "@/lib/uploads";
 import {
-  attachPhotosToVariantsAction,
-  getBulkPhotoTargetsAction,
-} from "@/app/dashboard/(painel)/loja/produtos/bulk-photos-actions";
-import {
   matchFolderGroups,
   parseRelativePath,
   isImageFileName,
@@ -25,7 +21,15 @@ function groupKey(modelFolder: string, colorFolder: string) {
   return `${modelFolder}::${colorFolder}`;
 }
 
-export function BulkPhotoImport() {
+export interface BulkPhotoImportProps {
+  /** Onde procurar os alvos (produtos/variações da loja, ou modelos/cores
+   * do catálogo global) — a mesma tela serve os dois casos, só troca de
+   * onde lê e onde grava. */
+  getTargets: () => Promise<MatchTargetProduct[]>;
+  attachPhotos: (payload: { variantIds: string[]; urls: string[] }) => Promise<{ ok: boolean; error?: string }>;
+}
+
+export function BulkPhotoImport({ getTargets, attachPhotos }: BulkPhotoImportProps) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -72,7 +76,7 @@ export function BulkPhotoImport() {
       return;
     }
 
-    const targets: MatchTargetProduct[] = await getBulkPhotoTargetsAction();
+    const targets: MatchTargetProduct[] = await getTargets();
     const matchResults = matchFolderGroups(
       rawGroups.map(({ modelFolder, colorFolder, files }) => ({ modelFolder, colorFolder, fileCount: files.length })),
       targets,
@@ -120,7 +124,7 @@ export function BulkPhotoImport() {
       if (urls.length === 0) continue;
 
       const variantIds = group.match.matches.map((m) => m.variantId);
-      const attach = await attachPhotosToVariantsAction({ variantIds, urls });
+      const attach = await attachPhotos({ variantIds, urls });
       if (attach.ok) {
         uploadedPhotos += urls.length;
         updatedVariants += variantIds.length;

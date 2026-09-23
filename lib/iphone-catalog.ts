@@ -8,18 +8,19 @@ export type CatalogModel = {
   name: string;
   description: string;
   specsText: string;
-  /** Every (color, storage) pair the model was sold in. */
-  variants: { color: string; storageLabel: string }[];
+  /** Every (color, storage) pair the model was sold in, with the platform's
+   * default photos for that color (lib/admin.ts controls who sets these). */
+  variants: { color: string; storageLabel: string; imageUrls: string[] }[];
   /** Distinct colors and storages, in catalog order — what the bulk import
    * shows as chips, since price varies by storage and not by color. */
   colors: string[];
   storages: string[];
 };
 
-/** The shared reference catalog (every iPhone model, its colors and its
- * storage options), in one query. It's the same for every store — nobody
- * edits it from the app — so it's read whole and grouped in memory rather
- * than queried per model. */
+/** The shared reference catalog (every iPhone model, its colors, storage
+ * options and default photos), in one query. It's the same for every store
+ * — a regular lojista only ever reads it — so it's read whole and grouped
+ * in memory rather than queried per model. */
 export const getCatalogModels = cache(async (): Promise<CatalogModel[]> => {
   const rows = await db
     .select({ model: iphoneCatalogModels, variant: iphoneCatalogVariants })
@@ -43,7 +44,11 @@ export const getCatalogModels = cache(async (): Promise<CatalogModel[]> => {
       byModel.set(model.id, entry);
     }
     if (!variant) continue;
-    entry.variants.push({ color: variant.color, storageLabel: variant.storageLabel });
+    entry.variants.push({
+      color: variant.color,
+      storageLabel: variant.storageLabel,
+      imageUrls: (variant.imageUrls as string[] | null) ?? [],
+    });
     if (!entry.colors.includes(variant.color)) entry.colors.push(variant.color);
     if (!entry.storages.includes(variant.storageLabel)) entry.storages.push(variant.storageLabel);
   }
@@ -55,4 +60,11 @@ export const getCatalogModels = cache(async (): Promise<CatalogModel[]> => {
  * técnica, no mesmo formato que o formulário de um aparelho só usa. */
 export function catalogModelDescription(model: Pick<CatalogModel, "description" | "specsText">): string {
   return [model.description, model.specsText].filter(Boolean).join("\n\n");
+}
+
+/** As fotos padrão de uma cor do catálogo — todas as capacidades daquela
+ * cor têm a mesma foto (é a mesma cor física), então basta a primeira
+ * variação que tiver alguma. */
+export function catalogColorPhotos(model: Pick<CatalogModel, "variants">, color: string): string[] {
+  return model.variants.find((v) => v.color === color && v.imageUrls.length > 0)?.imageUrls ?? [];
 }

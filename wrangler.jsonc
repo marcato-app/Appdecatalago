@@ -18,7 +18,11 @@
 	// sensível e é enviado como secret do Worker pelo workflow de deploy.
 	"vars": {
 		"NEXT_PUBLIC_SUPABASE_URL": "https://guuetpqdvepezffsjtjo.supabase.co",
-		"NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_csG7wFOerGGDFqyQn7jdyQ_a7WYqBpB"
+		"NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_csG7wFOerGGDFqyQn7jdyQ_a7WYqBpB",
+		// Quem pode editar o catálogo global de iPhones (fotos padrão por
+		// modelo/cor — lib/admin.ts). Não é segredo, é só um e-mail; separado
+		// por vírgula se precisar de mais de um.
+		"CATALOG_ADMIN_EMAILS": "gaabmgomes@icloud.com"
 	},
 	"assets": {
 		"directory": ".open-next/assets",

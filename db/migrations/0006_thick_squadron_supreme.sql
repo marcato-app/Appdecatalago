@@ -1,0 +1,1 @@
+ALTER TABLE "iphone_catalog_variants" ADD COLUMN "image_urls" jsonb DEFAULT '[]'::jsonb NOT NULL;

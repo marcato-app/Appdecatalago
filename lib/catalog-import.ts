@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { products, productVariants } from "@/db/schema";
-import { catalogModelDescription, type CatalogModel } from "@/lib/iphone-catalog";
+import { catalogColorPhotos, catalogModelDescription, type CatalogModel } from "@/lib/iphone-catalog";
 import { parseBRLToCents } from "@/lib/money";
 
 export const catalogImportSchema = z.object({
@@ -68,10 +68,15 @@ export function buildCatalogImportRows(
     const productId = crypto.randomUUID();
     const cheapest = pricedStorages.reduce((min, s) => (s.priceCents < min.priceCents ? s : min));
 
+    // Fotos padrão do catálogo global só entram em aparelho Lacrado — um
+    // seminovo/CPO tem marcas de uso reais que a foto genérica não mostra,
+    // então essas condições sempre começam sem foto (o lojista sobe a foto
+    // do aparelho que ele realmente tem).
     let sortOrder = 0;
     for (const { storageLabel, priceCents } of pricedStorages) {
       for (const color of colors) {
-        rows.variants.push({ productId, color, storageLabel, priceCents, imageUrls: [], sortOrder: sortOrder++ });
+        const imageUrls = input.condition === "lacrado" ? catalogColorPhotos(model, color) : [];
+        rows.variants.push({ productId, color, storageLabel, priceCents, imageUrls, sortOrder: sortOrder++ });
       }
     }
 

@@ -45,7 +45,7 @@ export interface CatalogModelOption {
   name: string;
   description: string;
   specsText: string;
-  variants: { color: string; storageLabel: string }[];
+  variants: { color: string; storageLabel: string; imageUrls: string[] }[];
 }
 
 const inputClass =
@@ -117,15 +117,25 @@ export function IphoneProductForm({
   function applyCatalogModel(modelId: string) {
     const model = catalogModels?.find((m) => m.id === modelId);
     if (!model) return;
+    // Fotos padrão do catálogo só fazem sentido pra aparelho Lacrado — um
+    // seminovo/CPO real tem marcas de uso que a foto genérica não mostra.
+    const withPhotos = condition === "lacrado";
     setName(model.name);
     setDescription([model.description, model.specsText].filter(Boolean).join("\n\n"));
     setVariants(
       model.variants.length > 0
-        ? model.variants.map((v) => ({ key: crypto.randomUUID(), color: v.color, storageLabel: v.storageLabel, price: "", imageUrls: [] }))
+        ? model.variants.map((v) => ({
+            key: crypto.randomUUID(),
+            color: v.color,
+            storageLabel: v.storageLabel,
+            price: "",
+            imageUrls: withPhotos ? v.imageUrls : [],
+          }))
         : [emptyVariant()],
     );
+    const withPhotoCount = withPhotos ? model.variants.filter((v) => v.imageUrls.length > 0).length : 0;
     showToast(
-      `${model.variants.length} variações adicionadas — apague (×) as que você não tem e preencha o preço das que ficarem.`,
+      `${model.variants.length} variações adicionadas${withPhotoCount > 0 ? `, ${withPhotoCount} já com foto` : ""} — apague (×) as que você não tem e preencha o preço das que ficarem.`,
     );
   }
 
