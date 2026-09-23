@@ -62,3 +62,35 @@ export const IPHONE_INCLUDED_ITEM_OPTIONS: string[] = ["Caixa", "Cabo", "Fonte",
 // dupla — o shot list padrão de renders de produto. jsonb, sem limite de
 // schema; só a validação da action e o formulário respeitam este teto.
 export const MAX_VARIANT_PHOTOS = 5;
+
+// A "linha de produto" (db/schema.ts productLine) — a loja vende a linha
+// Apple inteira, não só iPhone. iPhone continua sendo o default de toda
+// loja/produto criado antes dessa coluna existir.
+export type ProductLine = "iphone" | "watch" | "airpods" | "ipad" | "mac";
+
+export const PRODUCT_LINE_LABELS: Record<ProductLine, string> = {
+  iphone: "iPhone",
+  watch: "Apple Watch",
+  airpods: "AirPods",
+  ipad: "iPad",
+  mac: "Mac",
+};
+
+export const PRODUCT_LINE_ORDER: ProductLine[] = ["iphone", "watch", "airpods", "ipad", "mac"];
+
+// O rótulo do campo de capacidade/tamanho muda por linha — Watch tem
+// tamanho de caixa (não armazenamento), AirPods não tem variação nenhuma
+// nesse campo (fica escondido no formulário e vazio no catálogo).
+export const PRODUCT_LINE_STORAGE_LABELS: Record<ProductLine, string | null> = {
+  iphone: "Armazenamento",
+  watch: "Tamanho",
+  airpods: null,
+  ipad: "Armazenamento",
+  mac: "Armazenamento",
+};
+
+export const WATCH_SIZE_OPTIONS: string[] = ["38mm", "40mm", "41mm", "42mm", "44mm", "45mm", "46mm", "49mm"];
+
+export function storageOptionsForLine(line: ProductLine): string[] {
+  return line === "watch" ? WATCH_SIZE_OPTIONS : IPHONE_STORAGE_OPTIONS;
+}

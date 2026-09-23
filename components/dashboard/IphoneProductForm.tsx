@@ -9,7 +9,12 @@ import {
   IPHONE_GRADE_OPTIONS,
   IPHONE_INCLUDED_ITEM_OPTIONS,
   IPHONE_MODELS,
-  IPHONE_STORAGE_OPTIONS,
+  MAX_VARIANT_PHOTOS,
+  PRODUCT_LINE_LABELS,
+  PRODUCT_LINE_ORDER,
+  PRODUCT_LINE_STORAGE_LABELS,
+  storageOptionsForLine,
+  type ProductLine,
 } from "@/lib/iphone-models";
 import { VariantPhotoSlots } from "./VariantPhotoSlots";
 
@@ -27,6 +32,7 @@ export interface VariantDraft {
 
 export interface IphoneProductDefaults {
   name: string;
+  productLine: ProductLine;
   condition: Condition;
   grade: string;
   batteryHealthPct: string;
@@ -43,6 +49,7 @@ function emptyVariant(): VariantDraft {
 export interface CatalogModelOption {
   id: string;
   name: string;
+  productLine: ProductLine;
   description: string;
   specsText: string;
   variants: { color: string; storageLabel: string; imageUrls: string[] }[];
@@ -90,6 +97,7 @@ export function IphoneProductForm({
   }, initialState);
 
   const [name, setName] = useState(defaultValues?.name ?? "");
+  const [productLine, setProductLine] = useState<ProductLine>(defaultValues?.productLine ?? "iphone");
   const [condition, setCondition] = useState<Condition>(defaultValues?.condition ?? "seminovo");
   const [grade, setGrade] = useState(defaultValues?.grade ?? "A");
   const [batteryHealthPct, setBatteryHealthPct] = useState(defaultValues?.batteryHealthPct ?? "100");
@@ -113,6 +121,8 @@ export function IphoneProductForm({
     setIncludedItems((prev) => [...prev, trimmed]);
     setCustomItem("");
   }
+
+  const catalogModelsForLine = catalogModels?.filter((m) => m.productLine === productLine) ?? null;
 
   function applyCatalogModel(modelId: string) {
     const model = catalogModels?.find((m) => m.id === modelId);
@@ -150,11 +160,34 @@ export function IphoneProductForm({
       {includedItems.map((item) => (
         <input key={item} type="hidden" name="includedItems" value={item} />
       ))}
+      <input type="hidden" name="productLine" value={productLine} />
+
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-medium">Categoria *</label>
+        <div className="flex flex-wrap gap-2">
+          {PRODUCT_LINE_ORDER.map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setProductLine(value)}
+              className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                productLine === value
+                  ? "border-violet-500 bg-violet-50 text-violet-700 dark:border-violet-400 dark:bg-violet-950/40 dark:text-violet-300"
+                  : "border-zinc-300 dark:border-zinc-700"
+              }`}
+            >
+              {PRODUCT_LINE_LABELS[value]}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="flex flex-col gap-1 rounded-lg border border-violet-200 bg-violet-50/50 p-3 dark:border-violet-900 dark:bg-violet-950/20">
         <label className="text-sm font-medium">Escolher do catálogo</label>
-        {catalogModels === null ? (
+        {catalogModelsForLine === null ? (
           <p className="text-sm text-zinc-500">Carregando modelos...</p>
+        ) : catalogModelsForLine.length === 0 ? (
+          <p className="text-sm text-zinc-500">Nenhum modelo de {PRODUCT_LINE_LABELS[productLine]} no catálogo ainda.</p>
         ) : (
           <select
             defaultValue=""
@@ -165,7 +198,7 @@ export function IphoneProductForm({
             className={inputClass}
           >
             <option value="">Selecionar modelo (preenche nome, descrição e variações)...</option>
-            {catalogModels.map((model) => (
+            {catalogModelsForLine.map((model) => (
               <option key={model.id} value={model.id}>
                 {model.name}
               </option>
@@ -173,8 +206,8 @@ export function IphoneProductForm({
           </select>
         )}
         <p className="text-xs text-zinc-500">
-          Preenche modelo, descrição/ficha técnica e todas as combinações de cor/armazenamento — apague (×) as que você
-          não tem em estoque e preencha o preço das que ficarem.
+          Preenche modelo, descrição/ficha técnica e todas as combinações de cor/{PRODUCT_LINE_STORAGE_LABELS[productLine]?.toLowerCase() ?? "variação"} —
+          apague (×) as que você não tem em estoque e preencha o preço das que ficarem.
         </p>
       </div>
 
@@ -183,18 +216,20 @@ export function IphoneProductForm({
         <input
           type="text"
           name="name"
-          list="iphone-model-options"
+          list={productLine === "iphone" ? "iphone-model-options" : undefined}
           required
           value={name}
           onChange={(event) => setName(event.target.value)}
-          placeholder="Ex: iPhone 14 Pro Max"
+          placeholder={`Ex: ${productLine === "iphone" ? "iPhone 14 Pro Max" : PRODUCT_LINE_LABELS[productLine]}`}
           className={inputClass}
         />
-        <datalist id="iphone-model-options">
-          {IPHONE_MODELS.map((model) => (
-            <option key={model} value={model} />
-          ))}
-        </datalist>
+        {productLine === "iphone" ? (
+          <datalist id="iphone-model-options">
+            {IPHONE_MODELS.map((model) => (
+              <option key={model} value={model} />
+            ))}
+          </datalist>
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-1">
@@ -255,32 +290,36 @@ export function IphoneProductForm({
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium">Aparelhos em produtos *</label>
+        <label className="text-sm font-medium">Produtos em estoque *</label>
         <div className="flex flex-col gap-3">
-          {variants.map((variant, index) => (
+          {variants.map((variant, index) => {
+            const storageLabelName = PRODUCT_LINE_STORAGE_LABELS[productLine];
+            return (
             <div key={variant.key} className="flex flex-col gap-2 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
               <div className="flex items-center gap-2">
                 <input
                   type="text"
-                  list="iphone-color-options"
+                  list={productLine === "iphone" ? "iphone-color-options" : undefined}
                   placeholder="Cor"
                   required
                   value={variant.color}
                   onChange={(event) => updateVariant(variant.key, { color: event.target.value })}
                   className={`${inputClass} flex-1`}
                 />
-                <select
-                  value={variant.storageLabel}
-                  onChange={(event) => updateVariant(variant.key, { storageLabel: event.target.value })}
-                  className={`${inputClass} w-28`}
-                >
-                  <option value="">Armazenamento</option>
-                  {IPHONE_STORAGE_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
+                {storageLabelName ? (
+                  <select
+                    value={variant.storageLabel}
+                    onChange={(event) => updateVariant(variant.key, { storageLabel: event.target.value })}
+                    className={`${inputClass} w-28`}
+                  >
+                    <option value="">{storageLabelName}</option>
+                    {storageOptionsForLine(productLine).map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                ) : null}
                 {variants.length > 1 ? (
                   <button
                     type="button"
@@ -304,14 +343,14 @@ export function IphoneProductForm({
               />
 
               <div>
-                <p className="mb-1 text-xs text-zinc-500">Fotos desta cor (até 4)</p>
+                <p className="mb-1 text-xs text-zinc-500">Fotos desta cor (até {MAX_VARIANT_PHOTOS})</p>
                 <VariantPhotoSlots
                   images={variant.imageUrls}
                   onChange={(next) => updateVariant(variant.key, { imageUrls: next })}
                 />
               </div>
 
-              {index === 0 ? (
+              {index === 0 && productLine === "iphone" ? (
                 <datalist id="iphone-color-options">
                   {IPHONE_COLOR_OPTIONS.map((color) => (
                     <option key={color} value={color} />
@@ -319,7 +358,8 @@ export function IphoneProductForm({
                 </datalist>
               ) : null}
             </div>
-          ))}
+            );
+          })}
         </div>
         <button
           type="button"

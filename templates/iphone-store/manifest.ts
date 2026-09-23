@@ -1,16 +1,19 @@
 import type { TemplateManifest } from "../types";
 
-// Catalog-family template for used/new iPhone resellers: same
+// Catalog-family template for used/new Apple product resellers (iPhone,
+// Apple Watch, AirPods, iPad, Mac — see db/schema.ts productLine): same
 // categories/products businessType as adega-mm, but products carry
-// condition/grade/battery/variant fields (see db/schema.ts) instead of a
-// single price+photo, and the public page is a single filterable grid +
-// product detail (no separate "hub" page) — see templates/iphone-store/*.
+// condition/grade/battery/variant fields instead of a single price+photo,
+// and the public page is a single filterable grid + product detail (no
+// separate "hub" page) — see templates/iphone-store/*. Kept the
+// "iphone-store" slug/table names (not worth a mass rename) even though the
+// store now sells the whole Apple line, not just iPhone.
 export const manifest: TemplateManifest = {
   slug: "iphone-store",
-  name: "Loja de iPhones",
+  name: "Loja Apple",
   businessType: "catalog",
   description:
-    "Vitrine de aparelhos com condição, cor, armazenamento e fotos por variação, parcelamento e contato direto no WhatsApp. Ideal para revenda de iPhones novos e seminovos.",
+    "Vitrine de iPhone, Apple Watch, AirPods, iPad e Mac com condição, cor, armazenamento e fotos por variação, parcelamento e contato direto no WhatsApp. Ideal para revenda de produtos Apple novos e seminovos.",
   defaultTheme: {
     colors: {
       primary: "#ff6a1a",

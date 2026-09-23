@@ -10,13 +10,16 @@ import { AddCategoryForm } from "@/components/dashboard/AddCategoryForm";
 import { AddProductInline } from "@/components/dashboard/AddProductInline";
 import { ProductItem } from "@/components/dashboard/ProductItem";
 import { AddIphoneProductInline, IphoneProductRow } from "@/components/dashboard/IphoneProductRow";
-import { IPHONE_CONDITION_LABELS } from "@/lib/iphone-models";
+import { IPHONE_CONDITION_LABELS, PRODUCT_LINE_LABELS, PRODUCT_LINE_ORDER, type ProductLine } from "@/lib/iphone-models";
 import { deleteCategoryAction, moveCategoryAction } from "./actions";
 import type { CategoryOption } from "@/components/dashboard/ProductForm";
 
-async function IphoneProdutosPage({ storeId }: { storeId: string }) {
-  const items = await getIphoneProducts(storeId);
+async function IphoneProdutosPage({ storeId, activeLine }: { storeId: string; activeLine: ProductLine | null }) {
+  const allItems = await getIphoneProducts(storeId);
+  const items = activeLine ? allItems.filter((item) => item.productLine === activeLine) : allItems;
   const variantCount = items.reduce((total, item) => total + item.variants.length, 0);
+  const countByLine = new Map<ProductLine, number>();
+  for (const item of allItems) countByLine.set(item.productLine, (countByLine.get(item.productLine) ?? 0) + 1);
 
   const groups: { condition: "lacrado" | "seminovo" | "cpo"; label: string }[] = [
     { condition: "lacrado", label: IPHONE_CONDITION_LABELS.lacrado },
@@ -52,12 +55,42 @@ async function IphoneProdutosPage({ storeId }: { storeId: string }) {
         ) : null}
       </div>
 
+      {allItems.length > 0 ? (
+        <div className="flex flex-wrap gap-1.5">
+          <Link
+            href="/dashboard/loja/produtos"
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              !activeLine
+                ? "bg-violet-600 text-white"
+                : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+            }`}
+          >
+            Todos · {allItems.length}
+          </Link>
+          {PRODUCT_LINE_ORDER.map((line) => (
+            <Link
+              key={line}
+              href={`/dashboard/loja/produtos?linha=${line}`}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                activeLine === line
+                  ? "bg-violet-600 text-white"
+                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+              }`}
+            >
+              {PRODUCT_LINE_LABELS[line]} · {countByLine.get(line) ?? 0}
+            </Link>
+          ))}
+        </div>
+      ) : null}
+
       {items.length === 0 ? (
         <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-zinc-300 p-6 text-center dark:border-zinc-700">
           <div>
-            <p className="text-sm font-medium">Sua vitrine está vazia</p>
+            <p className="text-sm font-medium">
+              {allItems.length === 0 ? "Sua vitrine está vazia" : `Nenhum ${PRODUCT_LINE_LABELS[activeLine!]} cadastrado ainda`}
+            </p>
             <p className="mx-auto mt-1 max-w-sm text-sm text-zinc-500 dark:text-zinc-400">
-              O Flip já vem com um catálogo de iPhones pronto — descrição, ficha técnica, cores e capacidades de cada
+              O Flip já vem com um catálogo Apple pronto — descrição, ficha técnica, cores e capacidades de cada
               modelo. Escolha os que você vende, ponha o preço e a loja nasce pronta.
             </p>
           </div>
@@ -93,7 +126,9 @@ async function IphoneProdutosPage({ storeId }: { storeId: string }) {
   );
 }
 
-export default async function ProdutosPage() {
+const PRODUCT_LINE_VALUES = new Set<string>(PRODUCT_LINE_ORDER);
+
+export default async function ProdutosPage({ searchParams }: { searchParams: Promise<{ linha?: string }> }) {
   const { store, templateSlug } = await requireOwnedStoreWithTemplate();
   if (store.businessType !== "catalog") {
     redirect("/dashboard/loja/conteudo");
@@ -101,7 +136,9 @@ export default async function ProdutosPage() {
 
   const manifest = templateSlug ? getTemplateManifest(templateSlug) : undefined;
   if (manifest?.slug === "iphone-store") {
-    return <IphoneProdutosPage storeId={store.id} />;
+    const { linha } = await searchParams;
+    const activeLine = linha && PRODUCT_LINE_VALUES.has(linha) ? (linha as ProductLine) : null;
+    return <IphoneProdutosPage storeId={store.id} activeLine={activeLine} />;
   }
 
   const [allCategories, allProductRows] = await Promise.all([

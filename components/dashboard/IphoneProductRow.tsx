@@ -9,12 +9,13 @@ import {
 import { deleteProductAction, toggleProductActiveAction } from "@/app/dashboard/(painel)/loja/produtos/actions";
 import { showToast } from "@/lib/toast";
 import { formatCentsToBRL } from "@/lib/money";
-import { IPHONE_CONDITION_LABELS } from "@/lib/iphone-models";
+import { IPHONE_CONDITION_LABELS, PRODUCT_LINE_LABELS, type ProductLine } from "@/lib/iphone-models";
 import { IphoneProductForm, type IphoneProductDefaults } from "./IphoneProductForm";
 
 export interface IphoneProductRowData {
   id: string;
   name: string;
+  productLine: ProductLine;
   condition: "lacrado" | "seminovo" | "cpo" | null;
   grade: string | null;
   batteryHealthPct: number | null;
@@ -27,6 +28,7 @@ export interface IphoneProductRowData {
 function toDefaults(product: IphoneProductRowData): IphoneProductDefaults {
   return {
     name: product.name,
+    productLine: product.productLine,
     condition: product.condition ?? "seminovo",
     grade: product.grade ?? "A",
     batteryHealthPct: product.batteryHealthPct !== null ? String(product.batteryHealthPct) : "",
@@ -77,7 +79,8 @@ export function IphoneProductRow({ product }: { product: IphoneProductRowData })
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{product.name}</p>
         <p className="truncate text-xs text-zinc-500">
-          {product.condition ? IPHONE_CONDITION_LABELS[product.condition] : ""} · {metaLabel}
+          {PRODUCT_LINE_LABELS[product.productLine]} · {product.condition ? IPHONE_CONDITION_LABELS[product.condition] : ""} ·{" "}
+          {metaLabel}
         </p>
         <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{cheapest ? formatCentsToBRL(cheapest.priceCents) : ""}</p>
       </div>

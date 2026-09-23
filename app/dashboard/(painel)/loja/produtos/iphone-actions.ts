@@ -32,6 +32,7 @@ export async function getIphoneCatalogModelsAction(): Promise<CatalogModelOption
   return catalog.map((model) => ({
     id: model.id,
     name: model.name,
+    productLine: model.productLine,
     description: model.description,
     specsText: model.specsText,
     variants: model.variants.map((v) => ({ color: v.color, storageLabel: v.storageLabel, imageUrls: v.imageUrls })),
@@ -51,6 +52,7 @@ const variantInputSchema = z.object({
 
 const iphoneProductSchema = z.object({
   name: z.string().trim().min(1, "Informe o modelo."),
+  productLine: z.enum(["iphone", "watch", "airpods", "ipad", "mac"]).default("iphone"),
   condition: z.enum(["lacrado", "seminovo", "cpo"], { message: "Escolha a condição." }),
   grade: z.string().trim().optional(),
   batteryHealthPct: z.string().trim().optional(),
@@ -61,6 +63,7 @@ const iphoneProductSchema = z.object({
 
 interface ParsedIphoneProduct {
   name: string;
+  productLine: "iphone" | "watch" | "airpods" | "ipad" | "mac";
   condition: "lacrado" | "seminovo" | "cpo";
   grade: string | null;
   batteryHealthPct: number | null;
@@ -75,6 +78,7 @@ interface ParsedIphoneProduct {
 function parseIphoneProductForm(formData: FormData): { ok: true; data: ParsedIphoneProduct } | { ok: false; error: string } {
   const parsed = iphoneProductSchema.safeParse({
     name: formData.get("name"),
+    productLine: formData.get("productLine") || undefined,
     condition: formData.get("condition"),
     grade: formData.get("grade") || undefined,
     batteryHealthPct: formData.get("batteryHealthPct") || undefined,
@@ -138,6 +142,7 @@ function parseIphoneProductForm(formData: FormData): { ok: true; data: ParsedIph
     ok: true,
     data: {
       name: parsed.data.name,
+      productLine: parsed.data.productLine,
       condition: parsed.data.condition,
       grade: parsed.data.condition === "seminovo" ? (parsed.data.grade ?? null) || null : null,
       batteryHealthPct,
@@ -178,6 +183,7 @@ export async function addIphoneProductAction(_prevState: FormState, formData: Fo
       storeId: store.id,
       categoryId: null,
       name: result.data.name,
+      productLine: result.data.productLine,
       priceCents: result.data.priceCents,
       imageUrl: result.data.imageUrl,
       description: result.data.description,
@@ -212,6 +218,7 @@ export async function updateIphoneProductAction(_prevState: FormState, formData:
     .update(products)
     .set({
       name: result.data.name,
+      productLine: result.data.productLine,
       priceCents: result.data.priceCents,
       imageUrl: result.data.imageUrl,
       description: result.data.description,

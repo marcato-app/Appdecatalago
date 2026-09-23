@@ -6,6 +6,7 @@ import { iphoneCatalogModels, iphoneCatalogVariants } from "@/db/schema";
 export type CatalogModel = {
   id: string;
   name: string;
+  productLine: "iphone" | "watch" | "airpods" | "ipad" | "mac";
   description: string;
   specsText: string;
   /** Every (color, storage) pair the model was sold in, with the platform's
@@ -35,6 +36,7 @@ export const getCatalogModels = cache(async (): Promise<CatalogModel[]> => {
       entry = {
         id: model.id,
         name: model.name,
+        productLine: model.productLine,
         description: model.description,
         specsText: model.specsText,
         variants: [],

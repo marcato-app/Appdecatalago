@@ -48,6 +48,15 @@ export const blockTypeEnum = pgEnum("block_type", [
 // Nullable/unused on every other catalog template.
 export const productConditionEnum = pgEnum("product_condition", ["lacrado", "seminovo", "cpo"]);
 
+// Linha de produto dentro do template iphone-store — apesar do nome do
+// template e das tabelas (iphone_catalog_*, mantido por não valer a pena o
+// risco de um rename em massa), a loja vende a linha Apple inteira, não só
+// iPhone. Chamado de "productLine" (não "category") pra não colidir com
+// `categoryId` abaixo, que é outra coisa — seção/grupo do template genérico
+// de categorias (Adega MM). Default 'iphone' preserva todo produto/variação
+// já cadastrado antes desta coluna existir.
+export const productLineEnum = pgEnum("product_line", ["iphone", "watch", "airpods", "ipad", "mac"]);
+
 // ---------------------------------------------------------------------------
 // Users
 // ---------------------------------------------------------------------------
@@ -176,6 +185,7 @@ export const products = pgTable("products", {
   grade: text("grade"), // A / AB / B — only meaningful when condition = 'seminovo'
   batteryHealthPct: integer("battery_health_pct"),
   includedItems: jsonb("included_items").notNull().default([]), // string[] — "Caixa", "Cabo"...
+  productLine: productLineEnum("product_line").notNull().default("iphone"),
 });
 
 // Color/storage variants of a single iphone-store product ("iPhone 14"):
@@ -221,6 +231,7 @@ export const iphoneCatalogModels = pgTable("iphone_catalog_models", {
   description: text("description").notNull(),
   specsText: text("specs_text").notNull(),
   sortOrder: integer("sort_order").notNull().default(0),
+  productLine: productLineEnum("product_line").notNull().default("iphone"),
 });
 
 export const iphoneCatalogVariants = pgTable("iphone_catalog_variants", {

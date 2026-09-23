@@ -85,6 +85,7 @@ export function buildCatalogImportRows(
       storeId,
       categoryId: null,
       name: model.name,
+      productLine: model.productLine,
       priceCents: cheapest.priceCents,
       imageUrl: null,
       description: catalogModelDescription(model),

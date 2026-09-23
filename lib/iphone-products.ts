@@ -13,6 +13,7 @@ export type IphoneVariantRow = {
 export type IphoneProductRowData = {
   id: string;
   name: string;
+  productLine: "iphone" | "watch" | "airpods" | "ipad" | "mac";
   condition: "lacrado" | "seminovo" | "cpo" | null;
   grade: string | null;
   batteryHealthPct: number | null;
@@ -54,6 +55,7 @@ export async function getIphoneProducts(
       entry = {
         id: product.id,
         name: product.name,
+        productLine: product.productLine,
         condition: product.condition,
         grade: product.grade,
         batteryHealthPct: product.batteryHealthPct,

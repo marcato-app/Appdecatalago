@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
-import { IPHONE_CONDITION_LABELS } from "@/lib/iphone-models";
+import { IPHONE_CONDITION_LABELS, PRODUCT_LINE_LABELS, PRODUCT_LINE_ORDER } from "@/lib/iphone-models";
 import type { StorefrontSettings } from "@/lib/storefront-settings";
 import { SearchIcon } from "./icons";
 import { ProductCard } from "./ProductCard";
 import styles from "./Storefront.module.css";
-import type { IphoneCondition, IphoneProductDto } from "./types";
+import type { IphoneCondition, IphoneProductDto, IphoneProductLine } from "./types";
 
 type SortRule = "relevancia" | "novos" | "menor_preco" | "maior_preco";
 
@@ -30,9 +30,14 @@ export function StorefrontGrid({
   settings: StorefrontSettings;
 }) {
   const [query, setQuery] = useState("");
+  const [lineFilter, setLineFilter] = useState<IphoneProductLine | "todos">("todos");
   const [conditionFilter, setConditionFilter] = useState<IphoneCondition | "todos">("todos");
   const [sortRule, setSortRule] = useState<SortRule>("relevancia");
 
+  const availableLines = useMemo(
+    () => PRODUCT_LINE_ORDER.filter((line) => products.some((p) => p.productLine === line)),
+    [products],
+  );
   const availableConditions = useMemo(
     () => Array.from(new Set(products.map((p) => p.condition).filter((c): c is IphoneCondition => c !== null))),
     [products],
@@ -44,6 +49,7 @@ export function StorefrontGrid({
     const needle = query.trim().toLowerCase();
     if (needle) list = list.filter((p) => p.name.toLowerCase().includes(needle));
 
+    if (lineFilter !== "todos") list = list.filter((p) => p.productLine === lineFilter);
     if (conditionFilter !== "todos") list = list.filter((p) => p.condition === conditionFilter);
 
     const sorted = [...list];
@@ -52,7 +58,7 @@ export function StorefrontGrid({
     else if (sortRule === "maior_preco") sorted.sort((a, b) => cheapestCents(b) - cheapestCents(a));
 
     return sorted;
-  }, [products, query, conditionFilter, sortRule]);
+  }, [products, query, lineFilter, conditionFilter, sortRule]);
 
   return (
     <>
@@ -68,6 +74,30 @@ export function StorefrontGrid({
             onChange={(event) => setQuery(event.target.value)}
           />
         </div>
+
+        {availableLines.length > 1 ? (
+          <div className={styles.filterRow}>
+            <div className={styles.filterChips}>
+              <button
+                type="button"
+                onClick={() => setLineFilter("todos")}
+                className={`${styles.filterChip} ${lineFilter === "todos" ? styles.filterChipActive : ""}`}
+              >
+                Tudo
+              </button>
+              {availableLines.map((line) => (
+                <button
+                  key={line}
+                  type="button"
+                  onClick={() => setLineFilter(line)}
+                  className={`${styles.filterChip} ${lineFilter === line ? styles.filterChipActive : ""}`}
+                >
+                  {PRODUCT_LINE_LABELS[line]}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className={styles.filterRow}>
           <div className={styles.filterChips}>

@@ -1,4 +1,5 @@
 export type IphoneCondition = "lacrado" | "seminovo" | "cpo";
+export type IphoneProductLine = "iphone" | "watch" | "airpods" | "ipad" | "mac";
 
 export interface IphoneVariantDto {
   id: string;
@@ -11,6 +12,7 @@ export interface IphoneVariantDto {
 export interface IphoneProductDto {
   id: string;
   name: string;
+  productLine: IphoneProductLine;
   condition: IphoneCondition | null;
   grade: string | null;
   batteryHealthPct: number | null;

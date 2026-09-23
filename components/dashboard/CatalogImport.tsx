@@ -4,13 +4,21 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { importCatalogModelsAction } from "@/app/dashboard/(painel)/loja/produtos/catalog-actions";
 import { showToast } from "@/lib/toast";
-import { IPHONE_CONDITION_LABELS, IPHONE_GRADE_OPTIONS, IPHONE_INCLUDED_ITEM_OPTIONS } from "@/lib/iphone-models";
+import {
+  IPHONE_CONDITION_LABELS,
+  IPHONE_GRADE_OPTIONS,
+  IPHONE_INCLUDED_ITEM_OPTIONS,
+  PRODUCT_LINE_LABELS,
+  PRODUCT_LINE_ORDER,
+  type ProductLine,
+} from "@/lib/iphone-models";
 
 type Condition = "lacrado" | "seminovo" | "cpo";
 
 export interface CatalogImportModel {
   id: string;
   name: string;
+  productLine: ProductLine;
   colors: string[];
   storages: string[];
   /** "nome::condição" já cadastrados — só pra avisar, não bloqueia. */
@@ -42,11 +50,20 @@ export function CatalogImport({ models }: { models: CatalogImportModel[] }) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, ModelDraft>>({});
 
+  const linesPresent = useMemo(
+    () => PRODUCT_LINE_ORDER.filter((line) => models.some((model) => model.productLine === line)),
+    [models],
+  );
+  const [activeLine, setActiveLine] = useState<ProductLine | "todos">("todos");
+
   const visible = useMemo(() => {
     const q = normalize(query.trim());
-    if (!q) return models;
-    return models.filter((model) => normalize(model.name).includes(q));
-  }, [models, query]);
+    return models.filter((model) => {
+      if (activeLine !== "todos" && model.productLine !== activeLine) return false;
+      if (q && !normalize(model.name).includes(q)) return false;
+      return true;
+    });
+  }, [models, query, activeLine]);
 
   function draftOf(id: string): ModelDraft {
     return drafts[id] ?? { prices: {}, excludedColors: [] };
@@ -224,6 +241,36 @@ export function CatalogImport({ models }: { models: CatalogImportModel[] }) {
         placeholder="Buscar modelo (ex: 15 Pro)"
         className={`${inputClass} w-full`}
       />
+
+      {linesPresent.length > 1 ? (
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => setActiveLine("todos")}
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+              activeLine === "todos"
+                ? "border-violet-500 bg-violet-50 text-violet-700 dark:border-violet-400 dark:bg-violet-950/40 dark:text-violet-300"
+                : "border-zinc-300 dark:border-zinc-700"
+            }`}
+          >
+            Tudo
+          </button>
+          {linesPresent.map((line) => (
+            <button
+              key={line}
+              type="button"
+              onClick={() => setActiveLine(line)}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                activeLine === line
+                  ? "border-violet-500 bg-violet-50 text-violet-700 dark:border-violet-400 dark:bg-violet-950/40 dark:text-violet-300"
+                  : "border-zinc-300 dark:border-zinc-700"
+              }`}
+            >
+              {PRODUCT_LINE_LABELS[line]}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-2">
         {visible.map((model) => {

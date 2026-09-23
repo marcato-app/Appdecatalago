@@ -49,6 +49,7 @@ export default async function CatalogoPage() {
   const models: CatalogImportModel[] = catalog.map((model) => ({
     id: model.id,
     name: model.name,
+    productLine: model.productLine,
     colors: model.colors,
     storages: model.storages,
     alreadyIn: alreadyByName.get(model.name) ?? [],
@@ -60,7 +61,7 @@ export default async function CatalogoPage() {
         <Link href="/dashboard/loja/produtos" className="text-sm text-zinc-500 hover:underline dark:text-zinc-400">
           ← Aparelhos
         </Link>
-        <h1 className="mt-2 text-2xl font-bold tracking-tight">Catálogo de iPhones</h1>
+        <h1 className="mt-2 text-2xl font-bold tracking-tight">Catálogo Apple</h1>
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
           {models.length} modelos prontos, com descrição, ficha técnica, cores e capacidades. Marque os que você vende,
           ponha o preço e monte a loja inteira de uma vez. As fotos você adiciona depois em cada aparelho.
