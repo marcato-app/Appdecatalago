@@ -49,9 +49,10 @@ function normalize(value: string): string {
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "") // remove acentos
     .toLowerCase()
-    .replace(/[()]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+    // tira tudo que não é letra/número — cor com parêntese, hífen ou
+    // espaço bate com a mesma cor escrita sem ("(PRODUCT)RED" ==
+    // "PRODUCT RED", "Verde-Alpino" == "Verde Alpino").
+    .replace(/[^\p{L}\p{N}]+/gu, "");
 }
 
 function findProducts(modelFolder: string, products: MatchTargetProduct[]): MatchTargetProduct[] {

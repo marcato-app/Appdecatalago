@@ -167,7 +167,7 @@ export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
       "Conector USB-C, 5G, Wi-Fi 7",
       "Resistência a água e poeira IP68",
     ].join("\n"),
-    colors: ["Preto", "Branco", "Rosa", "Verde-água", "Ultramarino"],
+    colors: ["Preto", "Branco", "Rosa", "Verde-Cisne (Teal)", "Ultramarino"],
     storageOptions: ["128GB", "256GB", "512GB"],
   },
   {
@@ -181,7 +181,7 @@ export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
       "Conector USB-C, 5G, Wi-Fi 7",
       "Resistência a água e poeira IP68",
     ].join("\n"),
-    colors: ["Preto", "Branco", "Rosa", "Verde-água", "Ultramarino"],
+    colors: ["Preto", "Branco", "Rosa", "Verde-Cisne (Teal)", "Ultramarino"],
     storageOptions: ["128GB", "256GB", "512GB"],
   },
   {
@@ -313,7 +313,7 @@ export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
       "Conector Lightning, 5G",
       "Resistência a água e poeira IP68",
     ].join("\n"),
-    colors: ["Grafite", "Prateado", "Dourado", "Azul-serra"],
+    colors: ["Grafite", "Prateado", "Dourado", "Azul-Sierra", "Verde-Alpino"],
     storageOptions: ["128GB", "256GB", "512GB", "1TB"],
   },
   {
@@ -326,7 +326,7 @@ export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
       "Conector Lightning, 5G",
       "Resistência a água e poeira IP68",
     ].join("\n"),
-    colors: ["Grafite", "Prateado", "Dourado", "Azul-serra"],
+    colors: ["Grafite", "Prateado", "Dourado", "Azul-Sierra", "Verde-Alpino"],
     storageOptions: ["128GB", "256GB", "512GB", "1TB"],
   },
   {
@@ -393,6 +393,45 @@ export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
     ].join("\n"),
     colors: ["Grafite", "Prateado", "Dourado", "Azul-Pacífico"],
     storageOptions: ["128GB", "256GB", "512GB"],
+  },
+  {
+    name: "iPhone 12 mini",
+    description: "Todo o desempenho do iPhone 12 no corpo mais compacto que a Apple já fez.",
+    specsText: [
+      "Chip A14",
+      "Tela Super Retina XDR de 5,4\"",
+      "Câmera dupla de 12MP",
+      "Conector Lightning, 5G",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Preto", "Branco", "Verde", "Azul", "PRODUCT RED", "Roxo"],
+    storageOptions: ["64GB", "128GB", "256GB"],
+  },
+  {
+    name: "iPhone 11 Pro Max",
+    description: "Câmera tripla profissional e a maior bateria que a linha Pro já teve até então.",
+    specsText: [
+      "Chip A13",
+      "Tela Super Retina XDR de 6,5\"",
+      "Câmera tripla de 12MP",
+      "Conector Lightning",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Cinza-Espacial", "Prateado", "Dourado", "Verde-meia-noite"],
+    storageOptions: ["64GB", "256GB", "512GB"],
+  },
+  {
+    name: "iPhone 11 Pro",
+    description: "A primeira câmera tripla da Apple, num tamanho mais compacto que o Pro Max.",
+    specsText: [
+      "Chip A13",
+      "Tela Super Retina XDR de 5,8\"",
+      "Câmera tripla de 12MP",
+      "Conector Lightning",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Cinza-Espacial", "Prateado", "Dourado", "Verde-meia-noite"],
+    storageOptions: ["64GB", "256GB", "512GB"],
   },
   {
     name: "iPhone 11",

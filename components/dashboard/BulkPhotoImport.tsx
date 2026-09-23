@@ -38,6 +38,25 @@ function mimeFromFileName(name: string): string {
   }
 }
 
+/** Corrige o mojibake clássico de nome de arquivo com acento vindo de um
+ * .zip feito no iPhone: o Arquivos grava o nome em UTF-8 (às vezes com
+ * acento em forma decomposta, padrão do sistema de arquivos da Apple), mas
+ * alguma etapa no caminho decodifica esses bytes como Latin-1 em vez de
+ * UTF-8 — daí "Titânio" virar "TitaÌnio", "Geração" virar "GeracÌ§aÌo" etc.
+ * Se o texto tem essa cara (e cabe inteiro em Latin-1, ou seja, é mesmo
+ * bytes-como-texto e não Unicode de verdade), reinterpreta cada caractere
+ * como um byte e decodifica de novo como UTF-8. Texto normal passa direto. */
+function fixMojibake(text: string): string {
+  if (!/[ÂÃÌ]/.test(text)) return text;
+  if (![...text].every((ch) => ch.codePointAt(0)! <= 0xff)) return text;
+  try {
+    const bytes = Uint8Array.from(text, (ch) => ch.charCodeAt(0));
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes).normalize("NFC");
+  } catch {
+    return text; // não era esse tipo de mojibake — mantém como veio
+  }
+}
+
 /** Descompacta um .zip no navegador e devolve um arquivo por foto, com o
  * caminho original (Modelo/Cor/foto.jpg) preservado em `webkitRelativePath`
  * — o mesmo campo que a seleção de pasta usa, então o resto do código nem
@@ -46,8 +65,9 @@ function filesFromZip(bytes: Uint8Array): File[] {
   const entries = unzipSync(bytes);
   const files: File[] = [];
 
-  for (const [path, data] of Object.entries(entries)) {
-    if (path.endsWith("/") || !isImageFileName(path)) continue; // pasta, ou algo que não é foto
+  for (const [rawPath, data] of Object.entries(entries)) {
+    if (rawPath.endsWith("/") || !isImageFileName(rawPath)) continue; // pasta, ou algo que não é foto
+    const path = fixMojibake(rawPath);
     const name = path.split("/").pop() ?? path;
     // File aceita um BlobPart normal — cria um ArrayBuffer novo porque o
     // Uint8Array que o fflate devolve pode compartilhar um buffer maior.
