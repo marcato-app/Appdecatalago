@@ -22,6 +22,45 @@ function groupKey(modelFolder: string, colorFolder: string) {
   return `${modelFolder}::${colorFolder}`;
 }
 
+const UPLOAD_TIMEOUT_MS = 20_000;
+
+/** Corre uma promessa contra um relógio — se a rede engasgar (comum em 4G
+ * instável), o upload nunca fica esperando pra sempre. Sem isto, uma única
+ * foto travada travava a fila inteira: o Promise.all do grupo nunca
+ * resolvia, e a barra de progresso ficava parada num número pra sempre. */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("tempo esgotado")), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
+/** Sobe uma foto com uma segunda tentativa automática se a primeira travar
+ * ou cair — uma falha de rede passageira não devia perder a foto nem exigir
+ * refazer a importação inteira. */
+async function uploadWithRetry(file: File): Promise<{ url?: string; error?: string }> {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const formData = new FormData();
+    formData.set("file", file);
+    try {
+      const result = await withTimeout(uploadImageAction(formData), UPLOAD_TIMEOUT_MS);
+      if (result.url || attempt === 2) return result; // erro "de verdade" (ex: formato inválido) não adianta repetir, mas só desiste na 2ª
+    } catch {
+      if (attempt === 2) return { error: "Tempo esgotado ao enviar." };
+    }
+  }
+  return { error: "Falha ao enviar." };
+}
+
 function mimeFromFileName(name: string): string {
   switch (name.toLowerCase().split(".").pop()) {
     case "jpg":
@@ -184,9 +223,7 @@ export function BulkPhotoImport({ getTargets, attachPhotos }: BulkPhotoImportPro
       const urls: string[] = [];
       const results = await Promise.all(
         group.files.map(async (file) => {
-          const formData = new FormData();
-          formData.set("file", file);
-          const result = await uploadImageAction(formData);
+          const result = await uploadWithRetry(file);
           setProgress((prev) => ({ ...prev, done: prev.done + 1 }));
           return result;
         }),
