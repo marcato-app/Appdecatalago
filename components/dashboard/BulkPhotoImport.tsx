@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { unzipSync } from "fflate";
 import { uploadImageAction } from "@/lib/uploads";
 import {
   matchFolderGroups,
@@ -21,6 +22,43 @@ function groupKey(modelFolder: string, colorFolder: string) {
   return `${modelFolder}::${colorFolder}`;
 }
 
+function mimeFromFileName(name: string): string {
+  switch (name.toLowerCase().split(".").pop()) {
+    case "jpg":
+    case "jpeg":
+      return "image/jpeg";
+    case "png":
+      return "image/png";
+    case "webp":
+      return "image/webp";
+    case "gif":
+      return "image/gif";
+    default:
+      return "application/octet-stream";
+  }
+}
+
+/** Descompacta um .zip no navegador e devolve um arquivo por foto, com o
+ * caminho original (Modelo/Cor/foto.jpg) preservado em `webkitRelativePath`
+ * — o mesmo campo que a seleção de pasta usa, então o resto do código nem
+ * sabe a diferença entre as duas origens. */
+function filesFromZip(bytes: Uint8Array): File[] {
+  const entries = unzipSync(bytes);
+  const files: File[] = [];
+
+  for (const [path, data] of Object.entries(entries)) {
+    if (path.endsWith("/") || !isImageFileName(path)) continue; // pasta, ou algo que não é foto
+    const name = path.split("/").pop() ?? path;
+    // File aceita um BlobPart normal — cria um ArrayBuffer novo porque o
+    // Uint8Array que o fflate devolve pode compartilhar um buffer maior.
+    const file = new File([new Uint8Array(data)], name, { type: mimeFromFileName(name) });
+    Object.defineProperty(file, "webkitRelativePath", { value: path });
+    files.push(file);
+  }
+
+  return files;
+}
+
 export interface BulkPhotoImportProps {
   /** Onde procurar os alvos (produtos/variações da loja, ou modelos/cores
    * do catálogo global) — a mesma tela serve os dois casos, só troca de
@@ -31,7 +69,8 @@ export interface BulkPhotoImportProps {
 
 export function BulkPhotoImport({ getTargets, attachPhotos }: BulkPhotoImportProps) {
   const router = useRouter();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const zipInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
 
   const [groups, setGroups] = useState<GroupWithMatch[] | null>(null);
   const [skipped, setSkipped] = useState<Record<string, boolean>>({});
@@ -41,18 +80,15 @@ export function BulkPhotoImport({ getTargets, attachPhotos }: BulkPhotoImportPro
   const [summary, setSummary] = useState<string | null>(null);
   const [isReading, setIsReading] = useState(false);
 
-  function openPicker() {
-    inputRef.current?.click();
-  }
-
-  async function handleFilesSelected(fileList: FileList) {
+  async function processFiles(files: File[]) {
     setIsReading(true);
     setSummary(null);
 
     const byGroup = new Map<string, FolderGroup>();
-    for (const file of Array.from(fileList)) {
-      // webkitRelativePath não está no lib.dom.d.ts do TS, mas todo
-      // navegador que suporta seleção de pasta o preenche.
+    for (const file of files) {
+      // webkitRelativePath não está no lib.dom.d.ts do TS. Numa seleção de
+      // pasta de verdade o navegador preenche; num arquivo vindo do .zip,
+      // filesFromZip() já preencheu do mesmo jeito.
       const relPath = (file as unknown as { webkitRelativePath?: string }).webkitRelativePath;
       if (!relPath || !isImageFileName(file.name)) continue;
       const parsed = parseRelativePath(relPath);
@@ -72,7 +108,7 @@ export function BulkPhotoImport({ getTargets, attachPhotos }: BulkPhotoImportPro
 
     if (rawGroups.length === 0) {
       setIsReading(false);
-      showToast("Nenhuma foto encontrada nessa pasta — confira se escolheu a pasta certa.", true);
+      showToast("Nenhuma foto encontrada — confira se a estrutura é Modelo/Cor/foto.", true);
       return;
     }
 
@@ -89,6 +125,24 @@ export function BulkPhotoImport({ getTargets, attachPhotos }: BulkPhotoImportPro
     setGroups(merged);
     setSkipped({});
     setIsReading(false);
+  }
+
+  async function handleZipSelected(file: File) {
+    setIsReading(true);
+    setSummary(null);
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const files = filesFromZip(bytes);
+      if (files.length === 0) {
+        setIsReading(false);
+        showToast("Não achei nenhuma foto dentro do .zip.", true);
+        return;
+      }
+      await processFiles(files);
+    } catch {
+      setIsReading(false);
+      showToast("Não consegui abrir esse .zip — confira se o arquivo não corrompeu.", true);
+    }
   }
 
   const matchedGroups = (groups ?? []).filter((g) => g.match.matches.length > 0);
@@ -145,34 +199,58 @@ export function BulkPhotoImport({ getTargets, attachPhotos }: BulkPhotoImportPro
   return (
     <div className="flex flex-col gap-4">
       <input
-        ref={inputRef}
+        ref={zipInputRef}
+        type="file"
+        accept=".zip,application/zip,application/x-zip-compressed"
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) handleZipSelected(file);
+          event.target.value = "";
+        }}
+      />
+      <input
+        ref={folderInputRef}
         type="file"
         multiple
         accept="image/*"
         className="hidden"
         // webkitdirectory/directory não são props tipadas do React — só
-        // funcionam como atributos HTML brutos mesmo.
+        // funcionam como atributos HTML brutos mesmo. Sem suporte no Safari
+        // do iPhone, por isso o .zip é a opção principal (ver abaixo).
         {...{ webkitdirectory: "true", directory: "true" }}
         onChange={(event) => {
-          if (event.target.files && event.target.files.length > 0) handleFilesSelected(event.target.files);
+          if (event.target.files && event.target.files.length > 0) processFiles(Array.from(event.target.files));
           event.target.value = "";
         }}
       />
 
       {!groups ? (
-        <button
-          type="button"
-          onClick={openPicker}
-          disabled={isReading}
-          className="rounded-2xl border-2 border-dashed border-zinc-300 bg-white p-6 text-center transition-colors hover:border-violet-400 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900"
-        >
-          <p className="text-sm font-semibold text-violet-600 dark:text-violet-400">
-            {isReading ? "Lendo pasta..." : "Selecionar pasta"}
-          </p>
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            Escolha a pasta que tem uma pasta pra cada modelo, e dentro uma pasta pra cada cor
-          </p>
-        </button>
+        <div className="flex flex-col gap-3">
+          <button
+            type="button"
+            onClick={() => zipInputRef.current?.click()}
+            disabled={isReading}
+            className="rounded-2xl border-2 border-dashed border-zinc-300 bg-white p-6 text-center transition-colors hover:border-violet-400 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900"
+          >
+            <p className="text-sm font-semibold text-violet-600 dark:text-violet-400">
+              {isReading ? "Lendo arquivo..." : "Selecionar arquivo .zip"}
+            </p>
+            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+              No app Arquivos do iPhone: toque e segure a pasta com as fotos → <strong>Compactar</strong> → selecione o
+              .zip que aparecer
+            </p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => folderInputRef.current?.click()}
+            disabled={isReading}
+            className="text-center text-xs text-zinc-500 underline disabled:opacity-60 dark:text-zinc-400"
+          >
+            ou selecionar a pasta direto (só funciona em alguns navegadores de computador)
+          </button>
+        </div>
       ) : null}
 
       {summary ? (
@@ -256,8 +334,12 @@ export function BulkPhotoImport({ getTargets, attachPhotos }: BulkPhotoImportPro
                 {totalPhotos} {totalPhotos === 1 ? "foto" : "fotos"} · {totalVariants}{" "}
                 {totalVariants === 1 ? "variação" : "variações"}
               </p>
-              <button type="button" onClick={openPicker} className="text-xs text-violet-600 underline dark:text-violet-400">
-                trocar pasta
+              <button
+                type="button"
+                onClick={() => zipInputRef.current?.click()}
+                className="text-xs text-violet-600 underline dark:text-violet-400"
+              >
+                trocar arquivo
               </button>
             </div>
             <button
