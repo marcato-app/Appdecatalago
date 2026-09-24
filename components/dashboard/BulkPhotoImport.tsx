@@ -24,6 +24,65 @@ function groupKey(modelFolder: string, colorFolder: string) {
 
 const UPLOAD_TIMEOUT_MS = 20_000;
 
+// Foto de câmera de celular vem com 3-8MB — é isso que faz a importação em
+// lote demorar (é rede de subida de celular, não CPU). Reduzir a foto no
+// próprio navegador antes de enviar é o que realmente encurta a espera: o
+// mesmo arquivo cai pra ~100-400KB, que é mais do que suficiente pra um
+// card de produto ou carrossel na vitrine.
+const MAX_DIMENSION = 1600;
+const JPEG_QUALITY = 0.82;
+const SKIP_COMPRESSION_UNDER_BYTES = 400 * 1024;
+
+/** Redimensiona e recomprime uma foto no navegador antes do upload. Se o
+ * arquivo já é pequeno, se é GIF (perderia a animação), ou se decodificar
+ * falhar (formato exótico), devolve o arquivo original sem mexer — nunca
+ * bloqueia o envio por causa disso. */
+async function compressImage(file: File): Promise<File> {
+  if (file.type === "image/gif") return file;
+  if (file.size < SKIP_COMPRESSION_UNDER_BYTES) return file;
+
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      bitmap.close();
+      return file;
+    }
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close();
+
+    const outType = file.type === "image/png" ? "image/png" : "image/jpeg";
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, outType, JPEG_QUALITY));
+    if (!blob || blob.size >= file.size) return file; // não valeu a pena — mantém o original
+
+    const newName = outType === "image/jpeg" ? file.name.replace(/\.\w+$/, ".jpg") : file.name;
+    return new File([blob], newName, { type: outType });
+  } catch {
+    return file;
+  }
+}
+
+/** Roda até `limit` tarefas em paralelo em vez de uma por vez — cada grupo
+ * (modelo/cor) só dependia do anterior terminar sem necessidade nenhuma,
+ * o que desperdiçava banda disponível numa importação com muitos grupos. */
+async function runWithConcurrency<T>(items: T[], limit: number, worker: (item: T) => Promise<void>): Promise<void> {
+  let index = 0;
+  async function next(): Promise<void> {
+    const i = index++;
+    if (i >= items.length) return;
+    await worker(items[i]);
+    return next();
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, () => next()));
+}
+
 /** Corre uma promessa contra um relógio — se a rede engasgar (comum em 4G
  * instável), o upload nunca fica esperando pra sempre. Sem isto, uma única
  * foto travada travava a fila inteira: o Promise.all do grupo nunca
@@ -219,11 +278,12 @@ export function BulkPhotoImport({ getTargets, attachPhotos }: BulkPhotoImportPro
     let updatedVariants = 0;
     let failedFiles = 0;
 
-    for (const group of includedGroups) {
+    await runWithConcurrency(includedGroups, 3, async (group) => {
       const urls: string[] = [];
       const results = await Promise.all(
         group.files.map(async (file) => {
-          const result = await uploadWithRetry(file);
+          const compressed = await compressImage(file);
+          const result = await uploadWithRetry(compressed);
           setProgress((prev) => ({ ...prev, done: prev.done + 1 }));
           return result;
         }),
@@ -232,7 +292,7 @@ export function BulkPhotoImport({ getTargets, attachPhotos }: BulkPhotoImportPro
         if (result.url) urls.push(result.url);
         else failedFiles++;
       }
-      if (urls.length === 0) continue;
+      if (urls.length === 0) return;
 
       const variantIds = group.match.matches.map((m) => m.variantId);
       const attach = await attachPhotos({ variantIds, urls });
@@ -240,7 +300,7 @@ export function BulkPhotoImport({ getTargets, attachPhotos }: BulkPhotoImportPro
         uploadedPhotos += urls.length;
         updatedVariants += variantIds.length;
       }
-    }
+    });
 
     setIsUploading(false);
     setGroups(null);
