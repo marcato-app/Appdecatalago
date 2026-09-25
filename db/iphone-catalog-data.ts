@@ -122,6 +122,19 @@ export const IPHONE_CATALOG_DATA: IphoneCatalogModelData[] = [
     storageOptions: ["256GB", "512GB"],
   },
   {
+    name: "iPhone 17e",
+    description: "A porta de entrada mais moderna pra linha iPhone — desempenho atual por um preço mais acessível.",
+    specsText: [
+      "Chip A19",
+      "Tela Super Retina XDR de 6,1\" com Dynamic Island",
+      "Câmera única de 48MP",
+      "Conector USB-C, 5G, Wi-Fi 7",
+      "Resistência a água e poeira IP68",
+    ].join("\n"),
+    colors: ["Estelar", "Meia-noite", "Rosa"],
+    storageOptions: ["128GB", "256GB", "512GB"],
+  },
+  {
     name: "iPhone Air",
     description: "O iPhone mais fino já feito pela Apple, com bateria e câmera de topo de linha em um corpo ultraleve.",
     specsText: [

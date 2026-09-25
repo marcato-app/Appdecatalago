@@ -12,6 +12,13 @@ import {
   PRODUCT_LINE_ORDER,
   type ProductLine,
 } from "@/lib/iphone-models";
+import {
+  parsePriceList,
+  matchPriceListToCatalog,
+  centsToPriceInput,
+  type MatchedPriceEntry,
+  type UnmatchedPriceEntry,
+} from "@/lib/price-list-import";
 
 type Condition = "lacrado" | "seminovo" | "cpo";
 
@@ -55,6 +62,15 @@ export function CatalogImport({ models }: { models: CatalogImportModel[] }) {
     [models],
   );
   const [activeLine, setActiveLine] = useState<ProductLine | "todos">("todos");
+
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [pasteText, setPasteText] = useState("");
+  const [pasteResult, setPasteResult] = useState<{
+    matchedCount: number;
+    unmatched: UnmatchedPriceEntry[];
+    otherConditionCount: number;
+  } | null>(null);
+  const [showPasteUnmatched, setShowPasteUnmatched] = useState(false);
 
   const visible = useMemo(() => {
     const q = normalize(query.trim());
@@ -103,6 +119,55 @@ export function CatalogImport({ models }: { models: CatalogImportModel[] }) {
       delete next[modelId];
       return next;
     });
+  }
+
+  /** Aplica os modelos/capacidades que a lista colada casou com o catálogo
+   * direto nos rascunhos — mesmo estado que preencher preço campo por campo,
+   * então continua tudo revisável/editável antes de confirmar a importação. */
+  function applyPasteMatches(matches: MatchedPriceEntry[]) {
+    setDrafts((prev) => {
+      const next = { ...prev };
+      const includedColorsByModel = new Map<string, Set<string>>();
+
+      for (const m of matches) {
+        const draft = next[m.model.id] ?? { prices: {}, excludedColors: [] };
+        next[m.model.id] = {
+          ...draft,
+          prices: { ...draft.prices, [m.storage]: centsToPriceInput(m.priceCents) },
+        };
+        const set = includedColorsByModel.get(m.model.id) ?? new Set<string>();
+        for (const c of m.colors) set.add(c);
+        includedColorsByModel.set(m.model.id, set);
+      }
+
+      for (const [modelId, included] of includedColorsByModel) {
+        const model = models.find((mm) => mm.id === modelId);
+        if (!model) continue;
+        next[modelId] = { ...next[modelId], excludedColors: model.colors.filter((c) => !included.has(c)) };
+      }
+
+      return next;
+    });
+  }
+
+  function processPasteList() {
+    const blocks = parsePriceList(pasteText);
+    const result = matchPriceListToCatalog(blocks, models, condition);
+    applyPasteMatches(result.matched);
+    setPasteResult({
+      matchedCount: result.matched.length,
+      unmatched: result.unmatched,
+      otherConditionCount: result.otherConditionCount,
+    });
+    setShowPasteUnmatched(false);
+
+    if (result.matched.length === 0) {
+      showToast("Nenhum modelo da lista bateu com o catálogo — confira o formato colado.", true);
+      return;
+    }
+    showToast(
+      `${result.matched.length} ${result.matched.length === 1 ? "modelo preenchido" : "modelos preenchidos"} a partir da lista — confira os preços antes de adicionar`,
+    );
   }
 
   const selection = useMemo(() => {
@@ -232,6 +297,70 @@ export function CatalogImport({ models }: { models: CatalogImportModel[] }) {
             ))}
           </div>
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+        <button
+          type="button"
+          onClick={() => setPasteOpen((v) => !v)}
+          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-medium text-violet-600 dark:text-violet-400"
+        >
+          Colar lista de preços do fornecedor
+          <span aria-hidden="true" className="text-zinc-400">
+            {pasteOpen ? "▾" : "▸"}
+          </span>
+        </button>
+        {pasteOpen ? (
+          <div className="flex flex-col gap-2 border-t border-zinc-100 px-4 py-3 dark:border-zinc-800">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Cola aquela lista de preço que vem no WhatsApp/Instagram (📱 modelo, capacidade, cores, 💵 preço) — só pega
+              os itens da condição selecionada acima ({IPHONE_CONDITION_LABELS[condition]}). Pra outra condição, troca a
+              aba e cola de novo.
+            </p>
+            <textarea
+              value={pasteText}
+              onChange={(event) => setPasteText(event.target.value)}
+              placeholder={"📱 IPHONE 13 128GB – CPO\n🖤 GRAPHITE\n💵 2.880"}
+              rows={6}
+              className={`${inputClass} w-full font-mono text-xs`}
+            />
+            <button
+              type="button"
+              onClick={processPasteList}
+              disabled={!pasteText.trim()}
+              className="self-start rounded-full bg-violet-600 px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-violet-700 disabled:opacity-50"
+            >
+              Processar lista
+            </button>
+
+            {pasteResult ? (
+              <div className="mt-1 flex flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400">
+                <p>
+                  {pasteResult.matchedCount} {pasteResult.matchedCount === 1 ? "modelo preenchido" : "modelos preenchidos"}
+                  {pasteResult.otherConditionCount > 0
+                    ? ` · ${pasteResult.otherConditionCount} são de outra condição (troque a aba e cole de novo)`
+                    : ""}
+                </p>
+                {pasteResult.unmatched.length > 0 ? (
+                  <div>
+                    <button type="button" onClick={() => setShowPasteUnmatched((v) => !v)} className="underline">
+                      {showPasteUnmatched ? "ocultar" : "ver"} {pasteResult.unmatched.length} linhas não reconhecidas
+                    </button>
+                    {showPasteUnmatched ? (
+                      <ul className="mt-1 flex flex-col gap-0.5">
+                        {pasteResult.unmatched.map((u, i) => (
+                          <li key={i}>
+                            {u.block.rawHeader} — {u.reason}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <input
