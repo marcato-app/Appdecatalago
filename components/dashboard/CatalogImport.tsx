@@ -63,7 +63,7 @@ export function CatalogImport({ models }: { models: CatalogImportModel[] }) {
   );
   const [activeLine, setActiveLine] = useState<ProductLine | "todos">("todos");
 
-  const [pasteOpen, setPasteOpen] = useState(false);
+  const [pasteOpen, setPasteOpen] = useState(true);
   const [pasteText, setPasteText] = useState("");
   const [pasteResult, setPasteResult] = useState<{
     matchedCount: number;
@@ -299,19 +299,26 @@ export function CatalogImport({ models }: { models: CatalogImportModel[] }) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-2xl border-2 border-violet-300 bg-violet-50 dark:border-violet-700 dark:bg-violet-950/30">
         <button
           type="button"
           onClick={() => setPasteOpen((v) => !v)}
-          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-medium text-violet-600 dark:text-violet-400"
+          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
         >
-          Colar lista de preços do fornecedor
-          <span aria-hidden="true" className="text-zinc-400">
+          <span>
+            <span className="block text-sm font-semibold text-violet-700 dark:text-violet-300">
+              ✨ Colar lista de preços do fornecedor
+            </span>
+            <span className="mt-0.5 block text-xs text-violet-600/80 dark:text-violet-400/80">
+              Preenche os preços automaticamente — cola aqui em vez de digitar um por um
+            </span>
+          </span>
+          <span aria-hidden="true" className="shrink-0 text-violet-500">
             {pasteOpen ? "▾" : "▸"}
           </span>
         </button>
         {pasteOpen ? (
-          <div className="flex flex-col gap-2 border-t border-zinc-100 px-4 py-3 dark:border-zinc-800">
+          <div className="flex flex-col gap-2 border-t border-violet-200 px-4 py-3 dark:border-violet-800">
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Cola aquela lista de preço que vem no WhatsApp/Instagram (📱 modelo, capacidade, cores, 💵 preço) — só pega
               os itens da condição selecionada acima ({IPHONE_CONDITION_LABELS[condition]}). Pra outra condição, troca a
